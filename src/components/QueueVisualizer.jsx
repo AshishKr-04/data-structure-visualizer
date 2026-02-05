@@ -118,6 +118,13 @@ function QueueVisualizer() {
         <button onClick={handleEnqueue}>Enqueue</button>
         <button onClick={handleDequeue}>Dequeue</button>
       </div>
+      {/* Circular Queue Indicator */}
+      {queueType === "circular" && (
+        <div className="circular-indicator">
+          Rear ➜ Front (Circular Connection)
+        </div>
+      )}
+
 
       {/* Circular queue hint */}
       {queueType === "circular" && (
@@ -136,9 +143,8 @@ function QueueVisualizer() {
               queue.map((item, index) => (
                 <div
                   key={index}
-                  className={`queue-item ${
-                    index === dequeuingIndex ? "dequeuing" : ""
-                  }`}
+                  className={`queue-item ${index === dequeuingIndex ? "dequeuing" : ""
+                    }`}
                 >
                   {item}
                 </div>

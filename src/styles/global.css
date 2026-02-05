@@ -345,3 +345,9 @@ body {
 .queue-item.dequeuing {
   animation: dequeueOut 0.25s ease-in forwards;
 }
+.circular-indicator {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+}
