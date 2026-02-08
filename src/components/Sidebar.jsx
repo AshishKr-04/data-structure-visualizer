@@ -5,7 +5,6 @@ function Sidebar({ activeDS, setActiveDS }) {
         <h2>Data Structures</h2>
 
         <div className="ds-buttons">
-          {/* Stack */}
           <button
             className={activeDS === "stack" ? "active" : ""}
             onClick={() => setActiveDS("stack")}
@@ -13,7 +12,6 @@ function Sidebar({ activeDS, setActiveDS }) {
             Stack
           </button>
 
-          {/* Queue */}
           <button
             className={activeDS === "queue" ? "active" : ""}
             onClick={() => setActiveDS("queue")}
@@ -21,10 +19,12 @@ function Sidebar({ activeDS, setActiveDS }) {
             Queue
           </button>
 
-          {/* Keep others disabled for now */}
-          <button disabled>Linked List</button>
-          <button disabled>Tree</button>
-          <button disabled>Graph</button>
+          <button
+            className={activeDS === "linkedlist" ? "active" : ""}
+            onClick={() => setActiveDS("linkedlist")}
+          >
+            Linked List
+          </button>
         </div>
       </div>
     </aside>
