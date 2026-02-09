@@ -4,6 +4,8 @@ import Sidebar from "./components/Sidebar";
 import StackVisualizer from "./components/StackVisualizer";
 import QueueVisualizer from "./components/QueueVisualizer";
 import LinkedListVisualizer from "./components/LinkedListVisualizer";
+import ArrayVisualizer from "./components/ArrayVisualizer";
+
 
 function App() {
   const [activeDS, setActiveDS] = useState("stack");
@@ -22,9 +24,11 @@ function App() {
         <Sidebar activeDS={activeDS} setActiveDS={setActiveDS} />
 
         <main className="content">
+          {activeDS === "array" && <ArrayVisualizer />}
+          {activeDS === "linkedlist" && <LinkedListVisualizer />}
           {activeDS === "stack" && <StackVisualizer />}
           {activeDS === "queue" && <QueueVisualizer />}
-          {activeDS === "linkedlist" && <LinkedListVisualizer />}
+
         </main>
       </div>
     </>
