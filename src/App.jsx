@@ -5,6 +5,8 @@ import StackVisualizer from "./components/StackVisualizer";
 import QueueVisualizer from "./components/QueueVisualizer";
 import LinkedListVisualizer from "./components/LinkedListVisualizer";
 import ArrayVisualizer from "./components/ArrayVisualizer";
+import TreeVisualizer from "./components/TreeVisualizer";
+
 
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
           {activeDS === "linkedlist" && <LinkedListVisualizer />}
           {activeDS === "stack" && <StackVisualizer />}
           {activeDS === "queue" && <QueueVisualizer />}
+          {activeDS === "tree" && <TreeVisualizer />}
+
 
         </main>
       </div>

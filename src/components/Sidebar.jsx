@@ -36,6 +36,13 @@ function Sidebar({ activeDS, setActiveDS }) {
           >
             Queue
           </button>
+          <button
+            className={activeDS === "tree" ? "active" : ""}
+            onClick={() => setActiveDS("tree")}
+          >
+            Tree
+          </button>
+
         </div>
       </div>
     </aside>
