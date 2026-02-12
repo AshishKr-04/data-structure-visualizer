@@ -443,7 +443,11 @@ button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-/* ===== TREE VISUALIZER ===== */
+
+
+/* =========================
+   TREE VISUALIZATION
+========================= */
 
 .tree-container {
   display: flex;
@@ -455,6 +459,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .tree-circle {
@@ -466,11 +471,24 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: bold;
+  margin: 10px;
 }
 
+/* children wrapper */
 .tree-children {
   display: flex;
+  justify-content: center;
   gap: 40px;
-  margin-top: 20px;
+  position: relative;
+}
+
+/* lines */
+.tree-children::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  width: 2px;
+  height: 20px;
+  background: var(--accent);
 }
