@@ -3,11 +3,26 @@ import { useState } from "react";
 function TreeVisualizer() {
   const [treeMode, setTreeMode] = useState("binary"); // binary | bst
   const [root, setRoot] = useState(null); // Binary Tree
-  const [bstFromBinary, setBstFromBinary] = useState(null); // BST built from Binary
+  const [bstFromBinary, setBstFromBinary] = useState(null); // Built BST
   const [bstDirect, setBstDirect] = useState(null); // Standalone BST
   const [input, setInput] = useState("");
   const [message, setMessage] = useState("");
+
   const [showBST, setShowBST] = useState(false);
+
+  // Traversal
+  const [traversalOutput, setTraversalOutput] = useState([]);
+  const [traversalType, setTraversalType] = useState("");
+  const [isTraversing, setIsTraversing] = useState(false);
+
+  /* =========================================
+     RESET TRAVERSAL
+  ========================================= */
+  const resetTraversal = () => {
+    setTraversalOutput([]);
+    setTraversalType("");
+    setIsTraversing(false);
+  };
 
   /* =========================================
      BINARY TREE INSERT (LEVEL ORDER)
@@ -54,7 +69,7 @@ function TreeVisualizer() {
   };
 
   /* =========================================
-     BST INSERT (Standalone Mode)
+     BST INSERT (Standalone)
   ========================================= */
   const insertBST = () => {
     if (!input.trim()) {
@@ -92,14 +107,14 @@ function TreeVisualizer() {
 
     const values = [];
 
-    const collectValues = (node) => {
+    const collect = (node) => {
       if (!node) return;
       values.push(node.value);
-      collectValues(node.left);
-      collectValues(node.right);
+      collect(node.left);
+      collect(node.right);
     };
 
-    collectValues(root);
+    collect(root);
 
     let newBST = null;
 
@@ -115,8 +130,8 @@ function TreeVisualizer() {
       return node;
     };
 
-    values.forEach((val) => {
-      newBST = insertNode(newBST, val);
+    values.forEach((v) => {
+      newBST = insertNode(newBST, v);
     });
 
     setBstFromBinary(newBST);
@@ -124,7 +139,82 @@ function TreeVisualizer() {
   };
 
   /* =========================================
-     TREE RENDER (Recursive)
+     TRAVERSAL LOGIC
+  ========================================= */
+  const startTraversal = async (type) => {
+    let currentRoot =
+      treeMode === "binary"
+        ? root
+        : treeMode === "bst"
+        ? bstDirect
+        : null;
+
+    if (!currentRoot) {
+      setMessage("Tree is empty");
+      return;
+    }
+
+    resetTraversal();
+    setTraversalType(type);
+    setIsTraversing(true);
+
+    const result = [];
+
+    const delay = () =>
+      new Promise((resolve) => setTimeout(resolve, 500));
+
+    const inorder = async (node) => {
+      if (!node) return;
+      await inorder(node.left);
+      result.push(node.value);
+      setTraversalOutput([...result]);
+      await delay();
+      await inorder(node.right);
+    };
+
+    const preorder = async (node) => {
+      if (!node) return;
+      result.push(node.value);
+      setTraversalOutput([...result]);
+      await delay();
+      await preorder(node.left);
+      await preorder(node.right);
+    };
+
+    const postorder = async (node) => {
+      if (!node) return;
+      await postorder(node.left);
+      await postorder(node.right);
+      result.push(node.value);
+      setTraversalOutput([...result]);
+      await delay();
+    };
+
+    if (type === "inorder") await inorder(currentRoot);
+    if (type === "preorder") await preorder(currentRoot);
+    if (type === "postorder") await postorder(currentRoot);
+
+    setIsTraversing(false);
+  };
+
+  /* =========================================
+     TRAVERSAL EXPLANATION
+  ========================================= */
+  const getTraversalExplanation = () => {
+    switch (traversalType) {
+      case "inorder":
+        return "Traversal Pattern: Left → Node → Right";
+      case "preorder":
+        return "Traversal Pattern: Node → Left → Right";
+      case "postorder":
+        return "Traversal Pattern: Left → Right → Node";
+      default:
+        return "";
+    }
+  };
+
+  /* =========================================
+     TREE RENDER
   ========================================= */
   const renderTree = (node) => {
     if (!node) return null;
@@ -145,34 +235,14 @@ function TreeVisualizer() {
     <div className="stack-card">
       <h2>Tree Visualizer</h2>
 
-      {/* =========================
-         Definition
-      ========================= */}
-      <div className="stack-definition">
-        <h4>Definition</h4>
-
-        {treeMode === "binary" ? (
-          <p>
-            A <strong>Binary Tree</strong> is a hierarchical structure where
-            each node has at most two children.
-          </p>
-        ) : (
-          <p>
-            A <strong>Binary Search Tree (BST)</strong> maintains:
-            <br />
-            Left subtree values &lt; Root &lt; Right subtree values.
-          </p>
-        )}
-      </div>
-
-      {/* =========================
-         MODE SWITCH
-      ========================= */}
+      {/* MODE SWITCH */}
       <div className="ds-buttons">
         <button
           className={treeMode === "binary" ? "active" : ""}
           onClick={() => {
             setTreeMode("binary");
+            resetTraversal();
+            setShowBST(false);
             setMessage("");
           }}
         >
@@ -183,7 +253,7 @@ function TreeVisualizer() {
           className={treeMode === "bst" ? "active" : ""}
           onClick={() => {
             setTreeMode("bst");
-            setShowBST(false);
+            resetTraversal();
             setMessage("");
           }}
         >
@@ -191,9 +261,7 @@ function TreeVisualizer() {
         </button>
       </div>
 
-      {/* =========================
-         CONTROLS
-      ========================= */}
+      {/* INPUT + BUTTONS */}
       <div className="stack-controls">
         <input
           type="text"
@@ -209,38 +277,38 @@ function TreeVisualizer() {
               Build BST from Binary
             </button>
 
-            {!showBST ? (
-              <button onClick={() => setShowBST(true)}>
-                Show BST
-              </button>
-            ) : (
-              <button onClick={() => setShowBST(false)}>
-                Hide BST
-              </button>
-            )}
+            <button onClick={() => setShowBST(!showBST)}>
+              {showBST ? "Hide BST" : "Show BST"}
+            </button>
           </>
         )}
 
         {treeMode === "bst" && (
-          <button onClick={insertBST}>
-            Insert in BST
-          </button>
+          <button onClick={insertBST}>Insert in BST</button>
         )}
       </div>
 
-      {/* =========================
-         DISPLAY SECTION
-      ========================= */}
+      {/* TRAVERSAL BUTTONS */}
+      <div className="ds-buttons" style={{ marginTop: "15px" }}>
+        <button disabled={isTraversing} onClick={() => startTraversal("inorder")}>
+          Inorder
+        </button>
 
-      {/* Binary Mode Display */}
+        <button disabled={isTraversing} onClick={() => startTraversal("preorder")}>
+          Preorder
+        </button>
+
+        <button disabled={isTraversing} onClick={() => startTraversal("postorder")}>
+          Postorder
+        </button>
+      </div>
+
+      {/* DISPLAY SECTION */}
+
       {treeMode === "binary" && (
         <>
           <div className="tree-container">
-            {root ? (
-              renderTree(root)
-            ) : (
-              <div className="empty">Binary Tree is empty</div>
-            )}
+            {root ? renderTree(root) : <div className="empty">Binary Tree is empty</div>}
           </div>
 
           {showBST && (
@@ -263,14 +331,22 @@ function TreeVisualizer() {
         </>
       )}
 
-      {/* Standalone BST Mode */}
       {treeMode === "bst" && (
         <div className="tree-container">
-          {bstDirect ? (
-            renderTree(bstDirect)
-          ) : (
-            <div className="empty">BST is empty</div>
-          )}
+          {bstDirect ? renderTree(bstDirect) : <div className="empty">BST is empty</div>}
+        </div>
+      )}
+
+      {/* TRAVERSAL INFO */}
+      {traversalType && (
+        <div className="message" style={{ marginTop: "15px" }}>
+          {getTraversalExplanation()}
+        </div>
+      )}
+
+      {traversalOutput.length > 0 && (
+        <div className="message">
+          Traversal Output: {traversalOutput.join(" → ")}
         </div>
       )}
 

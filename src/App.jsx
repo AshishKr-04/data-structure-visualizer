@@ -7,13 +7,10 @@ import LinkedListVisualizer from "./components/LinkedListVisualizer";
 import ArrayVisualizer from "./components/ArrayVisualizer";
 import TreeVisualizer from "./components/TreeVisualizer";
 
-
-
 function App() {
-  const [activeDS, setActiveDS] = useState("stack");
+  const [activeDS, setActiveDS] = useState("array"); // 👈 default changed
   const [theme, setTheme] = useState("light");
 
-  // Apply theme to body
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
   }, [theme]);
@@ -31,8 +28,6 @@ function App() {
           {activeDS === "stack" && <StackVisualizer />}
           {activeDS === "queue" && <QueueVisualizer />}
           {activeDS === "tree" && <TreeVisualizer />}
-
-
         </main>
       </div>
     </>

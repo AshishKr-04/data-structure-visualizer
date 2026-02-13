@@ -492,3 +492,22 @@ button:disabled {
   height: 20px;
   background: var(--accent);
 }
+.tree-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.tree-circle.highlight {
+  background: #facc15;
+  color: black;
+  transform: scale(1.2);
+}
+
