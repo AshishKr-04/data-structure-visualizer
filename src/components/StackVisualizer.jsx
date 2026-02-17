@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+
 function StackVisualizer() {
   const [stack, setStack] = useState([]);
   const [input, setInput] = useState("");
@@ -39,6 +40,7 @@ function StackVisualizer() {
 
   return (
     <div className="stack-card">
+     
       <h2>Stack Visualizer</h2>
 
       {/* Definition */}
@@ -76,9 +78,8 @@ function StackVisualizer() {
               return (
                 <div
                   key={realIndex}
-                  className={`stack-item ${
-                    realIndex === poppingIndex ? "popping" : ""
-                  }`}
+                  className={`stack-item ${realIndex === poppingIndex ? "popping" : ""
+                    }`}
                 >
                   {item}
                 </div>

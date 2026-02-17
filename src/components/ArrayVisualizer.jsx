@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function ArrayVisualizer() {
+function ArrayVisualizer({ setShowVisualizer }) {
   const [array, setArray] = useState([]);
   const [input, setInput] = useState("");
   const [message, setMessage] = useState("");
@@ -73,6 +73,7 @@ function ArrayVisualizer() {
 
   return (
     <div className="stack-card">
+      
       <h2>Array Visualizer</h2>
 
       {/* Definition */}

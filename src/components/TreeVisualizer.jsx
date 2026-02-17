@@ -5,10 +5,10 @@ function TreeVisualizer() {
   const [root, setRoot] = useState(null); // Binary Tree
   const [bstFromBinary, setBstFromBinary] = useState(null);
   const [bstDirect, setBstDirect] = useState(null);
+  const [showBST, setShowBST] = useState(false);
 
   const [input, setInput] = useState("");
   const [message, setMessage] = useState("");
-  const [showBST, setShowBST] = useState(false);
 
   const [deletingValue, setDeletingValue] = useState(null);
 
@@ -17,18 +17,18 @@ function TreeVisualizer() {
   const [traversalType, setTraversalType] = useState("");
   const [isTraversing, setIsTraversing] = useState(false);
 
-  /* =========================================
+  /* ===============================
      RESET TRAVERSAL
-  ========================================= */
+  =============================== */
   const resetTraversal = () => {
     setTraversalOutput([]);
     setTraversalType("");
     setIsTraversing(false);
   };
 
-  /* =========================================
-     INSERT BINARY TREE (LEVEL ORDER)
-  ========================================= */
+  /* ===============================
+     BINARY INSERT (LEVEL ORDER)
+  =============================== */
   const insertBinary = () => {
     if (!input.trim()) return;
 
@@ -59,64 +59,11 @@ function TreeVisualizer() {
 
     setRoot({ ...root });
     setInput("");
-    setMessage(`Inserted ${value} in Binary Tree`);
   };
 
-  /* =========================================
-     DELETE BINARY TREE
-  ========================================= */
-  const deleteBinary = async () => {
-    if (!input.trim()) return;
-
-    const value = Number(input);
-    if (!root) return;
-
-    setDeletingValue(value);
-    setMessage(`Deleting ${value}...`);
-
-    await new Promise((res) => setTimeout(res, 800));
-
-    let nodeToDelete = null;
-    let deepestNode = null;
-    let parentOfDeepest = null;
-
-    const queue = [{ node: root, parent: null }];
-
-    while (queue.length) {
-      const { node, parent } = queue.shift();
-
-      if (node.value === value) nodeToDelete = node;
-
-      if (node.left) queue.push({ node: node.left, parent: node });
-      if (node.right) queue.push({ node: node.right, parent: node });
-
-      deepestNode = node;
-      parentOfDeepest = parent;
-    }
-
-    if (!nodeToDelete) {
-      setDeletingValue(null);
-      setMessage("Value not found");
-      return;
-    }
-
-    nodeToDelete.value = deepestNode.value;
-
-    if (parentOfDeepest) {
-      if (parentOfDeepest.left === deepestNode)
-        parentOfDeepest.left = null;
-      else parentOfDeepest.right = null;
-    } else setRoot(null);
-
-    setRoot({ ...root });
-    setDeletingValue(null);
-    setInput("");
-    setMessage(`Deleted ${value}`);
-  };
-
-  /* =========================================
-     INSERT BST
-  ========================================= */
+  /* ===============================
+     BST INSERT (Standalone)
+  =============================== */
   const insertBST = () => {
     if (!input.trim()) return;
 
@@ -135,57 +82,16 @@ function TreeVisualizer() {
 
     setBstDirect((prev) => insertNode(prev, value));
     setInput("");
-    setMessage(`Inserted ${value} in BST`);
   };
 
-  /* =========================================
-     DELETE BST
-  ========================================= */
-  const deleteBST = async () => {
-    if (!input.trim()) return;
-
-    const value = Number(input);
-    if (!bstDirect) return;
-
-    setDeletingValue(value);
-    setMessage(`Deleting ${value}...`);
-
-    await new Promise((res) => setTimeout(res, 800));
-
-    const deleteNode = (node, value) => {
-      if (!node) return null;
-
-      if (value < node.value)
-        node.left = deleteNode(node.left, value);
-      else if (value > node.value)
-        node.right = deleteNode(node.right, value);
-      else {
-        if (!node.left && !node.right) return null;
-        if (!node.left) return node.right;
-        if (!node.right) return node.left;
-
-        let successor = node.right;
-        while (successor.left) successor = successor.left;
-
-        node.value = successor.value;
-        node.right = deleteNode(node.right, successor.value);
-      }
-      return node;
-    };
-
-    setBstDirect((prev) => deleteNode(prev, value));
-    setDeletingValue(null);
-    setInput("");
-    setMessage(`Deleted ${value}`);
-  };
-
-  /* =========================================
+  /* ===============================
      BUILD BST FROM BINARY
-  ========================================= */
+  =============================== */
   const buildBSTFromBinary = () => {
     if (!root) return;
 
     const values = [];
+
     const collect = (node) => {
       if (!node) return;
       values.push(node.value);
@@ -199,10 +105,12 @@ function TreeVisualizer() {
 
     const insertNode = (node, value) => {
       if (!node) return { value, left: null, right: null };
+
       if (value < node.value)
         node.left = insertNode(node.left, value);
       else if (value > node.value)
         node.right = insertNode(node.right, value);
+
       return node;
     };
 
@@ -214,12 +122,59 @@ function TreeVisualizer() {
     setMessage("BST built from Binary Tree");
   };
 
-  /* =========================================
-     TRAVERSALS
-  ========================================= */
+  /* ===============================
+     DELETE (BST STYLE)
+  =============================== */
+  const deleteNode = async () => {
+    if (!input.trim()) return;
+
+    const value = Number(input);
+    setDeletingValue(value);
+    setMessage(`Deleting ${value}...`);
+
+    await new Promise((res) => setTimeout(res, 800));
+
+    const remove = (node, value) => {
+      if (!node) return null;
+
+      if (value < node.value)
+        node.left = remove(node.left, value);
+      else if (value > node.value)
+        node.right = remove(node.right, value);
+      else {
+        if (!node.left && !node.right) return null;
+        if (!node.left) return node.right;
+        if (!node.right) return node.left;
+
+        let successor = node.right;
+        while (successor.left)
+          successor = successor.left;
+
+        node.value = successor.value;
+        node.right = remove(node.right, successor.value);
+      }
+
+      return node;
+    };
+
+    if (treeMode === "binary")
+      setRoot((prev) => remove(prev, value));
+    else
+      setBstDirect((prev) => remove(prev, value));
+
+    setDeletingValue(null);
+    setInput("");
+    setMessage(`Deleted ${value}`);
+  };
+
+  /* ===============================
+     TRAVERSAL
+  =============================== */
   const startTraversal = async (type) => {
     const currentRoot =
-      treeMode === "binary" ? root : bstDirect;
+      treeMode === "binary"
+        ? root
+        : bstDirect;
 
     if (!currentRoot) return;
 
@@ -228,6 +183,7 @@ function TreeVisualizer() {
     setIsTraversing(true);
 
     const result = [];
+
     const delay = () =>
       new Promise((res) => setTimeout(res, 500));
 
@@ -265,9 +221,22 @@ function TreeVisualizer() {
     setIsTraversing(false);
   };
 
-  /* =========================================
-     TREE RENDER
-  ========================================= */
+  const getTraversalExplanation = () => {
+    switch (traversalType) {
+      case "inorder":
+        return "Traversal Pattern: Left → Node → Right";
+      case "preorder":
+        return "Traversal Pattern: Node → Left → Right";
+      case "postorder":
+        return "Traversal Pattern: Left → Right → Node";
+      default:
+        return "";
+    }
+  };
+
+  /* ===============================
+     RENDER TREE
+  =============================== */
   const renderTree = (node) => {
     if (!node) return null;
 
@@ -278,8 +247,8 @@ function TreeVisualizer() {
         <div
           className="tree-circle"
           style={{
-            backgroundColor: isDeleting ? "#ff4d4d" : "#2d6cdf",
-            transition: "0.3s ease"
+            backgroundColor: isDeleting ? "#ff4d4d" : "#2563eb",
+            transition: "0.3s"
           }}
         >
           {node.value}
@@ -295,15 +264,16 @@ function TreeVisualizer() {
 
   return (
     <div className="stack-card">
+      
       <h2>Tree Visualizer</h2>
 
+      {/* MODE SWITCH */}
       <div className="ds-buttons">
         <button
           className={treeMode === "binary" ? "active" : ""}
           onClick={() => {
             setTreeMode("binary");
             resetTraversal();
-            setShowBST(false);
           }}
         >
           Binary Tree
@@ -320,6 +290,7 @@ function TreeVisualizer() {
         </button>
       </div>
 
+      {/* CONTROLS */}
       <div className="stack-controls">
         <input
           type="text"
@@ -330,12 +301,9 @@ function TreeVisualizer() {
 
         {treeMode === "binary" && (
           <>
-            <button onClick={insertBinary}>Insert</button>
-            <button onClick={deleteBinary} style={{ background: "#e74c3c" }}>
-              Delete
-            </button>
+            <button onClick={insertBinary}>Insert Binary</button>
             <button onClick={buildBSTFromBinary}>
-              Build BST
+              Build BST from Binary
             </button>
             <button onClick={() => setShowBST(!showBST)}>
               {showBST ? "Hide BST" : "Show BST"}
@@ -344,16 +312,19 @@ function TreeVisualizer() {
         )}
 
         {treeMode === "bst" && (
-          <>
-            <button onClick={insertBST}>Insert</button>
-            <button onClick={deleteBST} style={{ background: "#e74c3c" }}>
-              Delete
-            </button>
-          </>
+          <button onClick={insertBST}>Insert in BST</button>
         )}
+
+        <button
+          onClick={deleteNode}
+          style={{ backgroundColor: "#e74c3c" }}
+        >
+          Delete
+        </button>
       </div>
 
-      <div className="ds-buttons">
+      {/* TRAVERSAL BUTTONS */}
+      <div className="ds-buttons" style={{ marginTop: "15px" }}>
         <button disabled={isTraversing} onClick={() => startTraversal("inorder")}>
           Inorder
         </button>
@@ -365,6 +336,14 @@ function TreeVisualizer() {
         </button>
       </div>
 
+      {/* TRAVERSAL EXPLANATION */}
+      {traversalType && (
+        <div className="message" style={{ marginTop: "15px" }}>
+          {getTraversalExplanation()}
+        </div>
+      )}
+
+      {/* TREE DISPLAY */}
       {treeMode === "binary" && (
         <>
           <div className="tree-container">
@@ -373,7 +352,9 @@ function TreeVisualizer() {
 
           {showBST && (
             <>
-              <h3>BST (From Binary)</h3>
+              <h3 style={{ marginTop: "30px" }}>
+                BST Built From Binary
+              </h3>
               <div className="tree-container">
                 {bstFromBinary
                   ? renderTree(bstFromBinary)
@@ -386,10 +367,13 @@ function TreeVisualizer() {
 
       {treeMode === "bst" && (
         <div className="tree-container">
-          {bstDirect ? renderTree(bstDirect) : <div className="empty">BST is empty</div>}
+          {bstDirect
+            ? renderTree(bstDirect)
+            : <div className="empty">BST is empty</div>}
         </div>
       )}
 
+      {/* TRAVERSAL OUTPUT */}
       {traversalOutput.length > 0 && (
         <div className="message">
           Traversal Output: {traversalOutput.join(" → ")}

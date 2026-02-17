@@ -99,6 +99,7 @@ function LinkedListVisualizer() {
 
     return (
         <div className="stack-card">
+            
             <h2>Linked List Visualizer</h2>
 
             {/* Definition */}
@@ -189,35 +190,35 @@ function LinkedListVisualizer() {
             {/* =========================
     CIRCULAR LINKED LIST
 ========================= */}
-{listType === "circular" && (
-  <>
-    <div className="circular-indicator">
-      Last node points back to the Head
-    </div>
+            {listType === "circular" && (
+                <>
+                    <div className="circular-indicator">
+                        Last node points back to the Head
+                    </div>
 
-    <div className="linked-list">
-      {list.length === 0 ? (
-        <div className="empty">Linked List is empty</div>
-      ) : (
-        list.map((node, index) => (
-          <div key={index} className="ll-node-wrapper">
-            <div className="ll-node">{node.value}</div>
+                    <div className="linked-list">
+                        {list.length === 0 ? (
+                            <div className="empty">Linked List is empty</div>
+                        ) : (
+                            list.map((node, index) => (
+                                <div key={index} className="ll-node-wrapper">
+                                    <div className="ll-node">{node.value}</div>
 
-            {/* Normal arrows */}
-            {index !== list.length - 1 && (
-              <span className="ll-arrow">→</span>
+                                    {/* Normal arrows */}
+                                    {index !== list.length - 1 && (
+                                        <span className="ll-arrow">→</span>
+                                    )}
+
+                                    {/* Last → First circular arrow */}
+                                    {index === list.length - 1 && list.length > 1 && (
+                                        <span className="ll-arrow circular-arrow">↺</span>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </>
             )}
-
-            {/* Last → First circular arrow */}
-            {index === list.length - 1 && list.length > 1 && (
-              <span className="ll-arrow circular-arrow">↺</span>
-            )}
-          </div>
-        ))
-      )}
-    </div>
-  </>
-)}
 
 
             {/* =========================
@@ -253,35 +254,35 @@ function LinkedListVisualizer() {
             {/* =========================
     CIRCULAR LINKED LIST
 ========================= */}
-{listType === "circular" && (
-  <>
-    <div className="circular-indicator">
-      Last node points back to the Head
-    </div>
+            {listType === "circular" && (
+                <>
+                    <div className="circular-indicator">
+                        Last node points back to the Head
+                    </div>
 
-    <div className="linked-list">
-      {list.length === 0 ? (
-        <div className="empty">Linked List is empty</div>
-      ) : (
-        list.map((node, index) => (
-          <div key={index} className="ll-node-wrapper">
-            <div className="ll-node">{node.value}</div>
+                    <div className="linked-list">
+                        {list.length === 0 ? (
+                            <div className="empty">Linked List is empty</div>
+                        ) : (
+                            list.map((node, index) => (
+                                <div key={index} className="ll-node-wrapper">
+                                    <div className="ll-node">{node.value}</div>
 
-            {/* Normal arrows */}
-            {index !== list.length - 1 && (
-              <span className="ll-arrow">→</span>
+                                    {/* Normal arrows */}
+                                    {index !== list.length - 1 && (
+                                        <span className="ll-arrow">→</span>
+                                    )}
+
+                                    {/* Last → First circular arrow */}
+                                    {index === list.length - 1 && list.length > 1 && (
+                                        <span className="ll-arrow circular-arrow">↺</span>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </>
             )}
-
-            {/* Last → First circular arrow */}
-            {index === list.length - 1 && list.length > 1 && (
-              <span className="ll-arrow circular-arrow">↺</span>
-            )}
-          </div>
-        ))
-      )}
-    </div>
-  </>
-)}
 
 
             {message && <div className="message">{message}</div>}

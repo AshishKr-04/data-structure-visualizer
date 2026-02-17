@@ -164,9 +164,8 @@ function QueueVisualizer() {
         listQueue.map((item, index) => (
           <div
             key={index}
-            className={`queue-item ${
-              index === dequeuingIndex ? "dequeuing" : ""
-            }`}
+            className={`queue-item ${index === dequeuingIndex ? "dequeuing" : ""
+              }`}
           >
             {item}
           </div>
@@ -190,9 +189,8 @@ function QueueVisualizer() {
     return queue.map((item, index) => (
       <div
         key={index}
-        className={`queue-item ${
-          index === dequeuingIndex ? "dequeuing" : ""
-        }`}
+        className={`queue-item ${index === dequeuingIndex ? "dequeuing" : ""
+          }`}
       >
         {item ?? "_"}
       </div>
@@ -201,6 +199,7 @@ function QueueVisualizer() {
 
   return (
     <div className="stack-card">
+      
       <h2>Queue Visualizer</h2>
 
       <div className="stack-definition">
