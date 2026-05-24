@@ -13,6 +13,16 @@ function Sidebar({ activeDS, setActiveDS }) {
         <p>Visualizer Lab</p>
       </div>
 
+      <nav className="nav-group" aria-label="Overview">
+        <h2>Overview</h2>
+        <button
+          className={activeDS === "home" ? "active" : ""}
+          onClick={() => setActiveDS("home")}
+        >
+          Home
+        </button>
+      </nav>
+
       {Object.entries(groups).map(([group, items]) => (
         <nav className="nav-group" key={group} aria-label={group}>
           <h2>{group}</h2>
