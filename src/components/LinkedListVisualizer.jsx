@@ -1,293 +1,198 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react";
+import AlgorithmTrace from "./AlgorithmTrace";
 
-function LinkedListVisualizer() {
-    const [listType, setListType] = useState("singly"); // singly | doubly | circular
-    const [list, setList] = useState([]);
-    const [input, setInput] = useState("");
-    const [message, setMessage] = useState("");
-    const [isReversing, setIsReversing] = useState(false);
+const reverseCode = [
+  "previous = null",
+  "current = head",
+  "store next node",
+  "point current.next to previous",
+  "move previous and current forward",
+  "previous becomes new head"
+];
 
-    /* =========================
-       INSERT AT FRONT
-    ========================= */
-    const insertFront = () => {
-        if (input.trim() === "") {
-            setMessage("Enter a value");
-            return;
-        }
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-        setList((prev) => [{ value: input }, ...prev]);
-        setInput("");
-        setMessage(`Inserted ${input} at front`);
-    };
+function LinkedListVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
+  const [listType, setListType] = useState("singly");
+  const [list, setList] = useState([{ value: "18" }, { value: "32" }, { value: "47" }]);
+  const [input, setInput] = useState("");
+  const [message, setMessage] = useState("Linked lists trade direct access for flexible insertion.");
+  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeLine, setActiveLine] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
 
-    /* =========================
-       INSERT AT END
-    ========================= */
-    const insertEnd = () => {
-        if (input.trim() === "") {
-            setMessage("Enter a value");
-            return;
-        }
+  useEffect(() => {
+    setList([]);
+    setInput("");
+    setActiveIndex(null);
+    setActiveLine(null);
+    setMessage("Linked list reset.");
+  }, [resetSignal]);
 
-        setList((prev) => [...prev, { value: input }]);
-        setInput("");
-        setMessage(`Inserted ${input} at end`);
-    };
+  useEffect(() => {
+    const sample = Array.from({ length: 4 }, () => ({ value: String(Math.floor(Math.random() * 90) + 10) }));
+    setList(sample);
+    setActiveIndex(null);
+    setActiveLine(null);
+    setMessage("Random linked list generated.");
+  }, [randomSignal]);
 
-    /* =========================
-       DELETE BY VALUE
-    ========================= */
-    const deleteValue = () => {
-        if (input.trim() === "") {
-            setMessage("Enter value to delete");
-            return;
-        }
+  const insertFront = () => {
+    if (!input.trim()) {
+      setMessage("Enter a value.");
+      return;
+    }
+    setList((prev) => [{ value: input }, ...prev]);
+    setMessage(`${input} inserted at the head.`);
+    logOperation?.("List insert front", `${input} inserted at head`);
+    setInput("");
+  };
 
-        const index = list.findIndex((node) => node.value === input);
-        if (index === -1) {
-            setMessage("Value not found");
-            return;
-        }
+  const insertEnd = () => {
+    if (!input.trim()) {
+      setMessage("Enter a value.");
+      return;
+    }
+    setList((prev) => [...prev, { value: input }]);
+    setMessage(`${input} inserted at the tail.`);
+    logOperation?.("List insert end", `${input} inserted at tail`);
+    setInput("");
+  };
 
-        setList((prev) => prev.filter((_, i) => i !== index));
-        setInput("");
-        setMessage(`Deleted ${input}`);
-    };
+  const deleteValue = () => {
+    const index = list.findIndex((node) => node.value === input);
+    if (!input.trim() || index === -1) {
+      setMessage("Enter an existing value to delete.");
+      return;
+    }
+    setList((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+    setMessage(`${input} deleted from node ${index}.`);
+    logOperation?.("List delete", `${input} deleted`);
+    setInput("");
+  };
 
-    /* =========================
-       REVERSE (ANIMATED)
-    ========================= */
-    const reverseList = async () => {
-        if (list.length <= 1) {
-            setMessage("Nothing to reverse");
-            return;
-        }
+  const setStep = async (line, index, text) => {
+    setActiveLine(line);
+    setActiveIndex(index);
+    setMessage(text);
+    await wait(speed);
+  };
 
-        setIsReversing(true);
-        setMessage("Reversing linked list...");
+  const reverseList = async () => {
+    if (list.length <= 1) {
+      setMessage("Nothing to reverse.");
+      return;
+    }
 
-        let temp = [...list];
-        let reversed = [];
+    setIsRunning(true);
+    await setStep(0, null, "Previous starts as null.");
+    await setStep(1, 0, "Current starts at the head.");
 
-        for (let i = temp.length - 1; i >= 0; i--) {
-            reversed.push(temp[i]);
-            setList([...reversed, ...temp.slice(0, i)]);
-            await new Promise((res) => setTimeout(res, 500));
-        }
+    const reversed = [];
+    for (let index = list.length - 1; index >= 0; index--) {
+      await setStep(2, index, `Store next link before changing node ${index}.`);
+      reversed.push(list[index]);
+      await setStep(3, index, "Pointer direction is reversed.");
+      setList([...reversed, ...list.slice(0, index)]);
+      await setStep(4, index, "Move to the next original node.");
+    }
 
-        setList(reversed);
-        setIsReversing(false);
-        setMessage("Linked list reversed");
-    };
+    setList(reversed);
+    await setStep(5, 0, "New head is the previous tail.");
+    setActiveIndex(null);
+    setIsRunning(false);
+    logOperation?.("List reverse", `Reversed ${reversed.length} nodes`);
+  };
 
-    /* =========================
-       DEFINITIONS
-    ========================= */
-    const getDefinition = () => {
-        switch (listType) {
-            case "singly":
-                return "A Singly Linked List has nodes pointing to the next node.";
-            case "doubly":
-                return "A Doubly Linked List has nodes pointing to both previous and next nodes.";
-            case "circular":
-                return "A Circular Linked List connects the last node back to the first node.";
-            default:
-                return "";
-        }
-    };
+  const definition = {
+    singly: "Each node points to the next node.",
+    doubly: "Each node points to both previous and next nodes.",
+    circular: "The tail points back to the head."
+  }[listType];
 
-    return (
-        <div className="stack-card">
-            
-            <h2>Linked List Visualizer</h2>
+  return (
+    <div className="visualizer-layout">
+      <section className="stack-card">
+        <h2>Linked List Visualizer</h2>
 
-            {/* Definition */}
-            <div className="stack-definition">
-                <h4>Definition</h4>
-                <p>{getDefinition()}</p>
-            </div>
-
-            {/* Reverse message */}
-            {isReversing && (
-                <div className="message">Reversing nodes step by step...</div>
-            )}
-
-            {/* List Type Selector */}
-            <div className="ds-buttons">
-                <button
-                    className={listType === "singly" ? "active" : ""}
-                    onClick={() => setListType("singly")}
-                    disabled={isReversing}
-                >
-                    Singly
-                </button>
-
-                <button
-                    className={listType === "doubly" ? "active" : ""}
-                    onClick={() => setListType("doubly")}
-                    disabled={isReversing}
-                >
-                    Doubly
-                </button>
-
-                <button
-                    className={listType === "circular" ? "active" : ""}
-                    onClick={() => setListType("circular")}
-                    disabled={isReversing}
-                >
-                    Circular
-                </button>
-            </div>
-
-
-            {/* Controls */}
-            <div className="stack-controls">
-                <input
-                    type="text"
-                    placeholder="Enter value"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    disabled={isReversing}
-                />
-
-                <button onClick={insertFront} disabled={isReversing}>
-                    Insert Front
-                </button>
-
-                <button onClick={insertEnd} disabled={isReversing}>
-                    Insert End
-                </button>
-
-                <button onClick={deleteValue} disabled={isReversing}>
-                    Delete
-                </button>
-
-                <button onClick={reverseList} disabled={isReversing}>
-                    Reverse
-                </button>
-            </div>
-
-            {/* =========================
-          SINGLY LINKED LIST
-      ========================= */}
-            {listType === "singly" && (
-                <div className="linked-list">
-                    {list.length === 0 ? (
-                        <div className="empty">Linked List is empty</div>
-                    ) : (
-                        list.map((node, index) => (
-                            <div key={index} className="ll-node-wrapper">
-                                <div className="ll-node">{node.value}</div>
-                                {index !== list.length - 1 && (
-                                    <span className="ll-arrow">→</span>
-                                )}
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-            {/* =========================
-    CIRCULAR LINKED LIST
-========================= */}
-            {listType === "circular" && (
-                <>
-                    <div className="circular-indicator">
-                        Last node points back to the Head
-                    </div>
-
-                    <div className="linked-list">
-                        {list.length === 0 ? (
-                            <div className="empty">Linked List is empty</div>
-                        ) : (
-                            list.map((node, index) => (
-                                <div key={index} className="ll-node-wrapper">
-                                    <div className="ll-node">{node.value}</div>
-
-                                    {/* Normal arrows */}
-                                    {index !== list.length - 1 && (
-                                        <span className="ll-arrow">→</span>
-                                    )}
-
-                                    {/* Last → First circular arrow */}
-                                    {index === list.length - 1 && list.length > 1 && (
-                                        <span className="ll-arrow circular-arrow">↺</span>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </>
-            )}
-
-
-            {/* =========================
-          DOUBLY LINKED LIST
-      ========================= */}
-            {listType === "doubly" && (
-                <div className="dll-container">
-                    {list.length === 0 ? (
-                        <div className="empty">Linked List is empty</div>
-                    ) : (
-                        list.map((node, index) => (
-                            <div key={index} className="dll-node-wrapper">
-                                {index === 0 && <span className="dll-null">NULL</span>}
-
-                                <div className="dll-node">
-                                    <span className="dll-part">prev</span>
-                                    <span className="dll-value">{node.value}</span>
-                                    <span className="dll-part">next</span>
-                                </div>
-
-                                {index !== list.length - 1 && (
-                                    <span className="dll-arrow">↔</span>
-                                )}
-
-                                {index === list.length - 1 && (
-                                    <span className="dll-null">NULL</span>
-                                )}
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-            {/* =========================
-    CIRCULAR LINKED LIST
-========================= */}
-            {listType === "circular" && (
-                <>
-                    <div className="circular-indicator">
-                        Last node points back to the Head
-                    </div>
-
-                    <div className="linked-list">
-                        {list.length === 0 ? (
-                            <div className="empty">Linked List is empty</div>
-                        ) : (
-                            list.map((node, index) => (
-                                <div key={index} className="ll-node-wrapper">
-                                    <div className="ll-node">{node.value}</div>
-
-                                    {/* Normal arrows */}
-                                    {index !== list.length - 1 && (
-                                        <span className="ll-arrow">→</span>
-                                    )}
-
-                                    {/* Last → First circular arrow */}
-                                    {index === list.length - 1 && list.length > 1 && (
-                                        <span className="ll-arrow circular-arrow">↺</span>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </>
-            )}
-
-
-            {message && <div className="message">{message}</div>}
+        <div className="stack-definition">
+          <h4>Definition</h4>
+          <p>{definition}</p>
         </div>
-    );
+
+        <div className="ds-buttons">
+          {["singly", "doubly", "circular"].map((type) => (
+            <button
+              key={type}
+              className={listType === type ? "active" : ""}
+              onClick={() => setListType(type)}
+              disabled={isRunning}
+            >
+              {type[0].toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <div className="stack-controls">
+          <input
+            type="text"
+            placeholder="Enter value"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            disabled={isRunning}
+          />
+          <button onClick={insertFront} disabled={isRunning}>Insert Front</button>
+          <button onClick={insertEnd} disabled={isRunning}>Insert End</button>
+          <button onClick={deleteValue} disabled={isRunning}>Delete</button>
+          <button onClick={reverseList} disabled={isRunning}>Reverse</button>
+        </div>
+
+        {listType === "circular" && (
+          <div className="circular-indicator">Tail links back to head.</div>
+        )}
+
+        <div className={listType === "doubly" ? "dll-container" : "linked-list"}>
+          {list.length === 0 ? (
+            <div className="empty">Linked list is empty</div>
+          ) : (
+            list.map((node, index) => (
+              <div className="ll-node-wrapper" key={`${node.value}-${index}`}>
+                {listType === "doubly" && index === 0 && <span className="dll-null">NULL</span>}
+                <div className={listType === "doubly" ? "dll-node" : "ll-node"}>
+                  {listType === "doubly" ? (
+                    <>
+                      <span className="dll-part">prev</span>
+                      <span className={`dll-value ${activeIndex === index ? "active" : ""}`}>{node.value}</span>
+                      <span className="dll-part">next</span>
+                    </>
+                  ) : (
+                    <span className={activeIndex === index ? "active-node" : ""}>{node.value}</span>
+                  )}
+                </div>
+                {index !== list.length - 1 && (
+                  <span className="ll-arrow">{listType === "doubly" ? "<->" : "->"}</span>
+                )}
+                {listType === "circular" && index === list.length - 1 && list.length > 1 && (
+                  <span className="circular-arrow">{"-> head"}</span>
+                )}
+                {listType === "doubly" && index === list.length - 1 && <span className="dll-null">NULL</span>}
+              </div>
+            ))
+          )}
+        </div>
+
+        <p className="message">{message}</p>
+      </section>
+
+      <AlgorithmTrace
+        title="Reverse Linked List"
+        steps={reverseCode}
+        activeLine={activeLine}
+        explanation={message}
+      />
+    </div>
+  );
 }
 
 export default LinkedListVisualizer;

@@ -1,156 +1,215 @@
-# 🚀 Data Structure Visualizer Dashboard
+# Data Structure Visualizer
 
-An interactive and educational **Data Structure Visualizer Dashboard** built using **React + Vite**.  
-This project helps users understand data structures through **visual animations, operations, and traversal simulations**.
+An interactive algorithm visualization platform built with React and Vite. It helps learners understand data structures and algorithms through animated operations, pseudocode tracing, operation history, adjustable animation speed, and guided step explanations.
 
----
+This project is designed as a portfolio-grade frontend engineering project: reusable components, centralized configuration, pure algorithm modules, validation helpers, and automated tests are included.
 
+## Live Demo
 
----
+Live demo: Deployment URL pending.
 
-# ⚙️ Tech Stack
+After deploying, replace this line with your public link, for example:
 
-- ⚛️ React
-- ⚡ Vite
-- 🎨 CSS (Custom Theme Variables)
-- 🧠 Functional Components + Hooks
-- 🎬 Async Animation using `setTimeout`
-- 🌗 Theme controlled using `data-theme`
+```md
+Live demo: https://your-project-name.vercel.app
+```
 
----
+## Preview
 
-# 📈 Time Complexity Overview
+![Dashboard preview](docs/screenshots/dashboard-preview.svg)
 
-| Data Structure | Access | Search | Insert | Delete |
-|---------------|--------|--------|--------|--------|
-| Array         | O(1)   | O(n)   | O(n)   | O(n)   |
-| Linked List   | O(n)   | O(n)   | O(1)   | O(1)   |
-| Stack         | -      | -      | O(1)   | O(1)   |
-| Queue         | -      | -      | O(1)   | O(1)   |
-| BST           | O(log n)* | O(log n)* | O(log n)* | O(log n)* |
+![Algorithm lab preview](docs/screenshots/algorithm-lab-preview.svg)
 
-\* Worst case can degrade to O(n)
+![Animated sorting demo](docs/screenshots/sorting-demo.svg)
 
----
+## Why I Built This
 
+Most data structure learning tools show either static diagrams or isolated animations. I wanted to build a more complete learning workspace where a user can:
 
+- choose a structure or algorithm,
+- run real operations,
+- see the visual state change,
+- read the current pseudocode step,
+- control animation speed,
+- review operation history,
+- and compare time complexity.
 
+The goal was not only to demonstrate React UI skills, but also to show algorithmic thinking, state management, code organization, and testing discipline.
 
-## 📌 Live Features
+## Features
 
-### 📘 Information Mode
-Each data structure includes:
-- Definition
-- Types
-- Time Complexity
-- Short explanation
+- Visualizers for arrays, linked lists, stacks, queues, trees, graphs, heaps, searching, and sorting.
+- Binary search, bubble sort, merge sort, and quick sort animations.
+- Graph algorithm visualizations for BFS, DFS, and Dijkstra.
+- Max heap insert and extract-max operations.
+- Step-by-step pseudocode highlighting.
+- Operation history panel.
+- Animation speed control.
+- Random data generation and reset controls.
+- Export/share workspace snapshot action.
+- Keyboard shortcuts:
+  - `V` opens Visualize mode.
+  - `I` opens Info mode.
+  - `R` generates random data.
+  - `Esc` resets the active workspace.
+- Light and dark mode.
+- Responsive layout for desktop and mobile.
 
-### 🚀 Visualizer Mode
-Interactive visual implementation of:
+## Tech Stack
 
-- ✅ Array
-- ✅ Linked List (Singly & Doubly)
-- ✅ Stack
-- ✅ Queue (Simple, Circular, Deque, Priority)
-- ✅ Binary Tree
-- ✅ Binary Search Tree (BST)
+- React
+- Vite
+- JavaScript
+- CSS custom properties
+- Node test runner
+- ESLint
 
----
+## Engineering Decisions
 
-# 🧠 Data Structures Included
+- Centralized data structure metadata in `src/config/dataStructures.js` so labels, descriptions, topics, and complexity values have one source of truth.
+- Split pure algorithm logic into `src/lib` modules so behavior can be tested without rendering React components.
+- Added reusable UI components such as `ControlPanel`, `VisualizerCard`, `OperationLog`, and `ComplexityTable`.
+- Kept visual animation state inside React components while moving reusable operations into pure functions.
+- Added validation helpers for numeric inputs to avoid invalid algorithm states.
+- Used Node's built-in test runner to keep the project lightweight and dependency-free.
+- Preserved a consistent visual system across core structures, algorithms, and advanced labs.
 
----
+## Data Structures and Algorithms
 
-## 1️⃣ Array
+| Area | Included |
+| --- | --- |
+| Array | Insert, delete, reverse |
+| Linked List | Singly, doubly, circular, insert, delete, reverse |
+| Stack | Push, pop, underflow handling |
+| Queue | Simple, circular, deque, priority queue |
+| Tree | Binary tree, BST, traversal, delete |
+| Search | Binary search |
+| Sorting | Bubble sort, merge sort, quick sort |
+| Graph | BFS, DFS, Dijkstra |
+| Heap | Max heap insert, extract max |
 
-### Features:
-- Insert element
-- Delete element
-- Step-by-step animated reverse
-- Final reversed output display
-- Time complexity overview
+## Complexity Overview
 
----
+| Structure / Algorithm | Key Operation | Complexity |
+| --- | --- | --- |
+| Array | Access | O(1) |
+| Array | Search | O(n) |
+| Linked List | Access | O(n) |
+| Stack | Push / Pop | O(1) |
+| Queue | Enqueue / Dequeue | O(1) |
+| Binary Search | Search | O(log n) |
+| Bubble Sort | Sort | O(n^2) |
+| Merge Sort | Sort | O(n log n) |
+| Quick Sort | Sort | O(n log n) average |
+| BFS / DFS | Traversal | O(V + E) |
+| Dijkstra | Shortest path | O((V + E) log V) |
+| Heap | Insert / Extract | O(log n) |
 
-## 2️⃣ Linked List
+## Project Structure
 
-### Types:
-- Singly Linked List
-- Doubly Linked List
+```text
+src/
+  components/
+    AlgorithmTrace.jsx
+    ComplexityTable.jsx
+    ControlPanel.jsx
+    OperationLog.jsx
+    VisualizerCard.jsx
+    *Visualizer.jsx
+  config/
+    dataStructures.js
+  lib/
+    arrayOps.js
+    graphOps.js
+    heapOps.js
+    sortSearchOps.js
+    stackOps.js
+    validation.js
+    *.test.js
+  styles/
+    global.css
+  App.jsx
+  main.jsx
+```
 
-### Features:
-- Insert at Front
-- Insert at End
-- Delete by Value
-- Animated Reverse
-- Node visualization with arrows
+## Quick Start
 
----
+```bash
+npm install
+npm run dev
+```
 
-## 3️⃣ Stack (LIFO)
+Open the local Vite URL, usually:
 
-### Features:
-- Push
-- Pop
-- Top indication
-- Push/Pop animation
-- Overflow / Underflow handling
+```text
+http://localhost:5173
+```
 
----
+## Available Scripts
 
-## 4️⃣ Queue (FIFO)
+```bash
+npm run dev
+npm run build
+npm run lint
+npm test
+npm run preview
+```
 
-### Types:
-- Simple Queue
-- Circular Queue
-- Deque
-- Priority Queue
+## Quality Checks
 
-### Features:
-- Enqueue
-- Dequeue
-- Front & Rear visualization
-- Dequeue animation
-- Circular connection indicator
+The project includes automated tests for core operations:
 
----
+- array insert, delete, and reverse,
+- stack push and pop,
+- heap insert, extract, and build,
+- binary search and sorting,
+- graph traversal and shortest paths,
+- numeric input validation.
 
-## 5️⃣ Tree
+Run all checks:
 
-### Modes:
-- Binary Tree
-- Binary Search Tree (BST)
+```bash
+npm run lint
+npm test
+npm run build
+```
 
-### Binary Tree Features:
-- Level-order insertion
-- Delete node animation
-- Traversal animations:
-  - Inorder (Left → Node → Right)
-  - Preorder (Node → Left → Right)
-  - Postorder (Left → Right → Node)
-- Traversal explanation display
-- Traversal step-by-step animation
+## Screenshots and Demo GIFs
 
-### BST Features:
-- Insert directly in BST
-- Delete node with animation
-- Build BST from Binary Tree
-- Separate standalone BST mode
-- Traversal animations
+Current preview assets are stored in:
 
----
+```text
+docs/screenshots/
+```
 
-# 🎨 UI Features
+Current media included:
 
-- 🌗 Dark / Light Mode Toggle
-- 📊 Dashboard-style layout
-- 📘 Info / Visualize Tab Switch
-- 🧭 Sidebar navigation
-- 🎬 Step-by-step animations
-- 💬 Operation status messages
-- 🎯 Highlighting active nodes
+- `dashboard-preview.svg`: application workspace preview.
+- `algorithm-lab-preview.svg`: search and sorting lab preview.
+- `sorting-demo.svg`: animated sorting demo preview.
 
----
+Recommended next media to add before applying:
 
-# 🏗️ Project Structure
+- `dashboard-demo.gif`: switching between visualizers.
+- `graph-demo.gif`: Dijkstra running on the weighted graph.
 
+## Deployment
+
+Recommended options:
+
+- Vercel
+- Netlify
+- GitHub Pages
+
+For Vercel or Netlify, use:
+
+```text
+Build command: npm run build
+Output directory: dist
+```
+
+Once deployed, update the Live Demo section at the top of this README.
+
+## Resume Description
+
+Built an interactive data structure and algorithm visualization platform in React featuring animated operations, pseudocode tracing, graph algorithms, heap operations, reusable UI components, centralized configuration, input validation, and automated tests.

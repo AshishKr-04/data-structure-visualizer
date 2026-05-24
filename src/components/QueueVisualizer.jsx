@@ -1,8 +1,10 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
+import { parseNumber } from "../lib/validation";
 
 const MAX_SIZE = 5;
 
-function QueueVisualizer() {
+function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
   const [queueType, setQueueType] = useState("simple");
 
   // shared
@@ -19,6 +21,29 @@ function QueueVisualizer() {
 
   // deque & priority queue (dynamic)
   const [listQueue, setListQueue] = useState([]);
+
+  useEffect(() => {
+    resetQueue(queueType);
+  }, [resetSignal]);
+
+  useEffect(() => {
+    const sample = Array.from({ length: 4 }, () => String(Math.floor(Math.random() * 90) + 10));
+    if (queueType === "priority") {
+      setListQueue(sample.map((value, index) => ({ value, priority: sample.length - index })));
+    } else if (queueType === "deque") {
+      setListQueue(sample);
+    } else {
+      const next = Array(MAX_SIZE).fill(null);
+      sample.forEach((value, index) => {
+        next[index] = value;
+      });
+      setQueue(next);
+      setFront(0);
+      setRear(sample.length - 1);
+      setSize(sample.length);
+    }
+    setMessage("Random queue generated.");
+  }, [randomSignal]);
 
   /* =========================
      RESET WHEN TYPE CHANGES
@@ -45,12 +70,19 @@ function QueueVisualizer() {
 
     // PRIORITY QUEUE
     if (queueType === "priority") {
-      const newItem = { value: input, priority: Number(priority) };
+      const priorityResult = parseNumber(priority, "Priority");
+      if (!priorityResult.ok) {
+        setMessage(priorityResult.error);
+        return;
+      }
+
+      const newItem = { value: input, priority: priorityResult.value };
       const newQueue = [...listQueue, newItem].sort(
         (a, b) => b.priority - a.priority
       );
       setListQueue(newQueue);
       setMessage(`Enqueued ${input} with priority ${priority}`);
+      logOperation?.("Priority enqueue", `${input} queued with priority ${priority}`);
       setInput("");
       return;
     }
@@ -59,6 +91,7 @@ function QueueVisualizer() {
     if (queueType === "deque") {
       setListQueue((prev) => [input, ...prev]);
       setMessage(`Inserted ${input} at front`);
+      logOperation?.("Deque insert", `${input} inserted at front`);
       setInput("");
       return;
     }
@@ -79,6 +112,7 @@ function QueueVisualizer() {
     setRear(newRear);
     setSize(size + 1);
     setMessage(`Enqueued ${input}`);
+    logOperation?.("Enqueue", `${input} added to queue`);
     setInput("");
   };
 
@@ -94,6 +128,7 @@ function QueueVisualizer() {
       }
       setListQueue((prev) => prev.slice(1));
       setMessage("Dequeued highest priority element");
+      logOperation?.("Priority dequeue", "Removed highest priority element");
       return;
     }
 
@@ -109,6 +144,7 @@ function QueueVisualizer() {
         setDequeuingIndex(null);
       }, 250);
       setMessage("Removed element from rear");
+      logOperation?.("Deque remove", "Removed element from rear");
       return;
     }
 
@@ -133,6 +169,7 @@ function QueueVisualizer() {
     }, 250);
 
     setMessage("Dequeued front element");
+    logOperation?.("Dequeue", "Removed front queue element");
   };
 
   /* =========================

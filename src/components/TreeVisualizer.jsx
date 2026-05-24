@@ -1,6 +1,8 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/immutability */
+import { useEffect, useState } from "react";
+import { parseNumber } from "../lib/validation";
 
-function TreeVisualizer() {
+function TreeVisualizer({ speed = 500, resetSignal, randomSignal, logOperation }) {
   const [treeMode, setTreeMode] = useState("binary"); // binary | bst
   const [root, setRoot] = useState(null); // Binary Tree
   const [bstFromBinary, setBstFromBinary] = useState(null);
@@ -17,6 +19,47 @@ function TreeVisualizer() {
   const [traversalType, setTraversalType] = useState("");
   const [isTraversing, setIsTraversing] = useState(false);
 
+  useEffect(() => {
+    setRoot(null);
+    setBstFromBinary(null);
+    setBstDirect(null);
+    setShowBST(false);
+    setInput("");
+    setMessage("Tree reset.");
+    setDeletingValue(null);
+    resetTraversal();
+  }, [resetSignal]);
+
+  useEffect(() => {
+    const values = Array.from({ length: 7 }, () => Math.floor(Math.random() * 90) + 10);
+    let nextRoot = null;
+    values.forEach((value) => {
+      const node = { value, left: null, right: null };
+      if (!nextRoot) {
+        nextRoot = node;
+        return;
+      }
+      const queue = [nextRoot];
+      while (queue.length) {
+        const current = queue.shift();
+        if (!current.left) {
+          current.left = node;
+          break;
+        }
+        queue.push(current.left);
+        if (!current.right) {
+          current.right = node;
+          break;
+        }
+        queue.push(current.right);
+      }
+    });
+    setRoot(nextRoot);
+    setBstDirect(null);
+    setBstFromBinary(null);
+    setMessage("Random binary tree generated.");
+  }, [randomSignal]);
+
   /* ===============================
      RESET TRAVERSAL
   =============================== */
@@ -32,12 +75,19 @@ function TreeVisualizer() {
   const insertBinary = () => {
     if (!input.trim()) return;
 
-    const value = Number(input);
+    const result = parseNumber(input);
+    if (!result.ok) {
+      setMessage(result.error);
+      return;
+    }
+
+    const value = result.value;
     const newNode = { value, left: null, right: null };
 
     if (!root) {
       setRoot(newNode);
       setInput("");
+      logOperation?.("Tree insert", `${value} inserted as root`);
       return;
     }
 
@@ -59,6 +109,7 @@ function TreeVisualizer() {
 
     setRoot({ ...root });
     setInput("");
+    logOperation?.("Tree insert", `${value} inserted level-order`);
   };
 
   /* ===============================
@@ -67,7 +118,13 @@ function TreeVisualizer() {
   const insertBST = () => {
     if (!input.trim()) return;
 
-    const value = Number(input);
+    const result = parseNumber(input);
+    if (!result.ok) {
+      setMessage(result.error);
+      return;
+    }
+
+    const value = result.value;
 
     const insertNode = (node, value) => {
       if (!node) return { value, left: null, right: null };
@@ -82,6 +139,7 @@ function TreeVisualizer() {
 
     setBstDirect((prev) => insertNode(prev, value));
     setInput("");
+    logOperation?.("BST insert", `${value} inserted`);
   };
 
   /* ===============================
@@ -120,6 +178,7 @@ function TreeVisualizer() {
 
     setBstFromBinary(newBST);
     setMessage("BST built from Binary Tree");
+    logOperation?.("Build BST", "BST created from binary tree values");
   };
 
   /* ===============================
@@ -128,11 +187,17 @@ function TreeVisualizer() {
   const deleteNode = async () => {
     if (!input.trim()) return;
 
-    const value = Number(input);
+    const result = parseNumber(input);
+    if (!result.ok) {
+      setMessage(result.error);
+      return;
+    }
+
+    const value = result.value;
     setDeletingValue(value);
     setMessage(`Deleting ${value}...`);
 
-    await new Promise((res) => setTimeout(res, 800));
+    await new Promise((res) => setTimeout(res, speed));
 
     const remove = (node, value) => {
       if (!node) return null;
@@ -165,6 +230,7 @@ function TreeVisualizer() {
     setDeletingValue(null);
     setInput("");
     setMessage(`Deleted ${value}`);
+    logOperation?.("Tree delete", `${value} deleted`);
   };
 
   /* ===============================
@@ -185,7 +251,7 @@ function TreeVisualizer() {
     const result = [];
 
     const delay = () =>
-      new Promise((res) => setTimeout(res, 500));
+      new Promise((res) => setTimeout(res, speed));
 
     const inorder = async (node) => {
       if (!node) return;
@@ -219,6 +285,7 @@ function TreeVisualizer() {
     if (type === "postorder") await postorder(currentRoot);
 
     setIsTraversing(false);
+    logOperation?.("Tree traversal", `${type} traversal completed`);
   };
 
   const getTraversalExplanation = () => {

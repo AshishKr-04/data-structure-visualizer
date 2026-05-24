@@ -5,13 +5,13 @@ function Navbar({ theme, setTheme }) {
 
   return (
     <header className="navbar">
-      <div className="title-box">
+      <div>
+        <p className="nav-kicker">Algorithm studio</p>
         <h1>Data Structure Visualizer</h1>
-        <p>Visualize Stack, Queue, Linked List & more</p>
       </div>
 
       <button className="theme-toggle" onClick={toggleTheme}>
-        {theme === "light" ? "🌙 Dark" : "🌞 Light"}
+        {theme === "light" ? "Dark mode" : "Light mode"}
       </button>
     </header>
   );

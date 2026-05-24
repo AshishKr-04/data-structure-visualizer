@@ -1,0 +1,40 @@
+<svg width="900" height="420" viewBox="0 0 900 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="420" rx="12" fill="#111827"/>
+  <text x="36" y="48" fill="#a7b0c0" font-family="Segoe UI, Arial" font-size="13" font-weight="800">ANIMATED DEMO PREVIEW</text>
+  <text x="36" y="86" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="32" font-weight="800">Sorting Visualization</text>
+  <text x="36" y="116" fill="#a7b0c0" font-family="Segoe UI, Arial" font-size="15">Bars compare, swap, and settle while pseudocode highlights the active step.</text>
+
+  <g transform="translate(82 166)">
+    <rect width="62" height="160" rx="9" fill="#94a3b8">
+      <animate attributeName="height" values="160;70;160" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="y" values="0;90;0" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#94a3b8;#f59e0b;#16a34a" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="92" y="70" width="62" height="90" rx="9" fill="#f59e0b">
+      <animate attributeName="height" values="90;160;90" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="y" values="70;0;70" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#f59e0b;#94a3b8;#16a34a" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="184" y="38" width="62" height="122" rx="9" fill="#94a3b8">
+      <animate attributeName="fill" values="#94a3b8;#f59e0b;#94a3b8" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="276" y="104" width="62" height="56" rx="9" fill="#16a34a"/>
+    <rect x="368" y="18" width="62" height="142" rx="9" fill="#94a3b8">
+      <animate attributeName="fill" values="#94a3b8;#94a3b8;#16a34a" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <text x="8" y="198" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="15" font-weight="700">42</text>
+    <text x="100" y="198" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="15" font-weight="700">12</text>
+    <text x="192" y="198" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="15" font-weight="700">31</text>
+    <text x="284" y="198" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="15" font-weight="700">9</text>
+    <text x="376" y="198" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="15" font-weight="700">55</text>
+  </g>
+
+  <rect x="590" y="152" width="250" height="176" rx="10" fill="#172033" stroke="#253149"/>
+  <text x="614" y="188" fill="#a7b0c0" font-family="Segoe UI, Arial" font-size="12" font-weight="800">PSEUDOCODE</text>
+  <text x="614" y="224" fill="#f8fafc" font-family="Consolas, monospace" font-size="15">compare adjacent values</text>
+  <rect x="606" y="244" width="198" height="34" rx="8" fill="#172554">
+    <animate attributeName="opacity" values="1;0.45;1" dur="1.5s" repeatCount="indefinite"/>
+  </rect>
+  <text x="614" y="266" fill="#f8fafc" font-family="Consolas, monospace" font-size="15">swap if out of order</text>
+  <text x="614" y="306" fill="#a7b0c0" font-family="Consolas, monospace" font-size="15">mark settled values</text>
+</svg>

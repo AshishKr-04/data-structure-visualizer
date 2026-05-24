@@ -1,147 +1,156 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react";
+import AlgorithmTrace from "./AlgorithmTrace";
+import ControlPanel from "./ControlPanel";
+import VisualizerCard from "./VisualizerCard";
+import { deleteFirstMatch, insertAtEnd, reverseWithSwaps } from "../lib/arrayOps";
 
-function ArrayVisualizer({ setShowVisualizer }) {
-  const [array, setArray] = useState([]);
+const reverseCode = [
+  "left = 0, right = n - 1",
+  "while left < right",
+  "swap values at left and right",
+  "move left forward",
+  "move right backward"
+];
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function ArrayVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
+  const [array, setArray] = useState(["12", "24", "36", "48"]);
   const [input, setInput] = useState("");
-  const [message, setMessage] = useState("");
-  const [reversedArray, setReversedArray] = useState([]);
-  const [isReversing, setIsReversing] = useState(false);
+  const [message, setMessage] = useState("Insert, delete, or reverse the array.");
+  const [activeIndexes, setActiveIndexes] = useState([]);
+  const [activeLine, setActiveLine] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
 
-  /* =========================
-     INSERT
-  ========================= */
+  useEffect(() => {
+    setArray([]);
+    setInput("");
+    setActiveIndexes([]);
+    setActiveLine(null);
+    setMessage("Array reset.");
+  }, [resetSignal]);
+
+  useEffect(() => {
+    const sample = Array.from({ length: 6 }, () => String(Math.floor(Math.random() * 90) + 10));
+    setArray(sample);
+    setActiveIndexes([]);
+    setActiveLine(null);
+    setMessage("Random array generated.");
+  }, [randomSignal]);
+
   const insertElement = () => {
     if (input.trim() === "") {
-      setMessage("Enter a value to insert");
+      setMessage("Enter a value to insert.");
       return;
     }
 
-    setArray((prev) => [...prev, input]);
+    setArray((prev) => insertAtEnd(prev, input));
     setInput("");
-    setMessage(`Inserted ${input}`);
+    setMessage(`${input} inserted at index ${array.length}.`);
+    logOperation?.("Array insert", `${input} inserted at index ${array.length}`);
   };
 
-  /* =========================
-     DELETE
-  ========================= */
   const deleteElement = () => {
     if (input.trim() === "") {
-      setMessage("Enter value to delete");
+      setMessage("Enter a value to delete.");
       return;
     }
 
     const index = array.indexOf(input);
     if (index === -1) {
-      setMessage("Value not found");
+      setMessage(`${input} was not found.`);
       return;
     }
 
-    setArray((prev) => prev.filter((_, i) => i !== index));
-    setMessage(`Deleted ${input}`);
+    setArray((prev) => deleteFirstMatch(prev, input).next);
     setInput("");
+    setMessage(`${input} deleted from index ${index}.`);
+    logOperation?.("Array delete", `${input} deleted from index ${index}`);
   };
 
-  /* =========================
-     STEP-BY-STEP REVERSE
-  ========================= */
+  const setStep = async (line, indexes, text) => {
+    setActiveLine(line);
+    setActiveIndexes(indexes);
+    setMessage(text);
+    await wait(speed);
+  };
+
   const reverseArray = async () => {
     if (array.length <= 1) {
-      setMessage("Nothing to reverse");
+      setMessage("Nothing to reverse.");
       return;
     }
 
-    setIsReversing(true);
-    setMessage("Reversing array step by step...");
-    setReversedArray([]);
+    setIsRunning(true);
+    const { next, swaps } = reverseWithSwaps(array);
+    let left = 0;
+    let right = next.length - 1;
+    await setStep(0, [left, right], "Two pointers start at both ends.");
 
-    let temp = [...array];
-    let result = [];
-
-    for (let i = temp.length - 1; i >= 0; i--) {
-      result.push(temp[i]);
-
-      // show animation step
-      setArray([...result, ...temp.slice(0, i)]);
-      await new Promise((res) => setTimeout(res, 500));
+    for (const swap of swaps) {
+      await setStep(1, [swap.left, swap.right], `Compare positions ${swap.left} and ${swap.right}.`);
+      setArray(swap.after);
+      await setStep(2, [swap.left, swap.right], "Values swapped.");
+      left += 1;
+      await setStep(3, [left], "Left pointer moves forward.");
+      right -= 1;
+      await setStep(4, [right], "Right pointer moves backward.");
     }
 
-    setArray([...result]);
-    setReversedArray([...result]);
-    setIsReversing(false);
-    setMessage("Array reversed successfully");
+    setActiveIndexes([]);
+    setIsRunning(false);
+    setMessage("Array reversed successfully.");
+    logOperation?.("Array reverse", `Reversed ${next.length} values`);
   };
 
   return (
-    <div className="stack-card">
-      
-      <h2>Array Visualizer</h2>
+    <div className="visualizer-layout">
+      <VisualizerCard
+        eyebrow="Core structure"
+        title="Array Visualizer"
+        description="An array stores values by index, making direct access efficient."
+      >
+        <ControlPanel className="stack-controls">
+          <input
+            type="text"
+            placeholder="Enter value"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            disabled={isRunning}
+          />
+          <button onClick={insertElement} disabled={isRunning}>Insert</button>
+          <button onClick={deleteElement} disabled={isRunning}>Delete</button>
+          <button onClick={reverseArray} disabled={isRunning}>Reverse</button>
+        </ControlPanel>
 
-      {/* Definition */}
-      <div className="stack-definition">
-        <h4>Definition</h4>
-        <p>
-          An <strong>Array</strong> is a linear data structure that stores
-          elements in contiguous memory locations.
-        </p>
-      </div>
-
-      {isReversing && (
-        <div className="message">Reversing elements one by one...</div>
-      )}
-
-      {/* Controls */}
-      <div className="stack-controls">
-        <input
-          type="text"
-          placeholder="Enter value"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={isReversing}
-        />
-        <button onClick={insertElement} disabled={isReversing}>
-          Insert
-        </button>
-        <button onClick={deleteElement} disabled={isReversing}>
-          Delete
-        </button>
-        <button onClick={reverseArray} disabled={isReversing}>
-          Reverse
-        </button>
-      </div>
-
-      {/* Current Array */}
-      <div className="queue-container">
-        <span className="label">Array</span>
-
-        <div className="queue-box">
-          {array.length === 0 ? (
-            <div className="empty">Array is empty</div>
-          ) : (
-            array.map((item, index) => (
-              <div key={index} className="queue-item">
-                {item}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Final Reversed Array */}
-      {reversedArray.length > 0 && !isReversing && (
-        <div className="queue-container" style={{ marginTop: "16px" }}>
-          <span className="label">Final Reversed Array</span>
-
+        <div className="queue-container">
+          <span className="label">Array</span>
           <div className="queue-box">
-            {reversedArray.map((item, index) => (
-              <div key={index} className="queue-item">
-                {item}
-              </div>
-            ))}
+            {array.length === 0 ? (
+              <div className="empty">Array is empty</div>
+            ) : (
+              array.map((item, index) => (
+                <div
+                  key={`${item}-${index}`}
+                  className={`queue-item ${activeIndexes.includes(index) ? "active" : ""}`}
+                >
+                  {item}
+                </div>
+              ))
+            )}
           </div>
         </div>
-      )}
 
-      {message && <div className="message">{message}</div>}
+        <p className="message">{message}</p>
+      </VisualizerCard>
+
+      <AlgorithmTrace
+        title="Reverse Array"
+        steps={reverseCode}
+        activeLine={activeLine}
+        explanation={message}
+      />
     </div>
   );
 }

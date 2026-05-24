@@ -1,73 +1,77 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState } from "react";
+import ControlPanel from "./ControlPanel";
+import VisualizerCard from "./VisualizerCard";
+import { popStack, pushStack } from "../lib/stackOps";
 
-
-function StackVisualizer() {
+function StackVisualizer({ resetSignal, randomSignal, logOperation }) {
   const [stack, setStack] = useState([]);
   const [input, setInput] = useState("");
-  const [message, setMessage] = useState("");
-  const [poppingIndex, setPoppingIndex] = useState(null); // 🔥 for pop animation
+  const [message, setMessage] = useState("Push values to inspect LIFO behavior.");
+  const [poppingIndex, setPoppingIndex] = useState(null);
+
+  useEffect(() => {
+    setStack([]);
+    setInput("");
+    setPoppingIndex(null);
+    setMessage("Stack reset.");
+  }, [resetSignal]);
+
+  useEffect(() => {
+    const sample = Array.from({ length: 4 }, () => String(Math.floor(Math.random() * 90) + 10));
+    setStack(sample);
+    setMessage("Random stack generated.");
+  }, [randomSignal]);
 
   const handlePush = () => {
     if (input.trim() === "") {
-      setMessage("Enter a value to push");
+      setMessage("Enter a value to push.");
       return;
     }
 
-    setStack((prev) => [...prev, input]);
+    setStack((prev) => pushStack(prev, input));
     setInput("");
-    setMessage(`Pushed ${input}`);
+    setMessage(`Pushed ${input}. The newest value becomes the top.`);
+    logOperation?.("Push", `${input} added to stack`);
   };
 
   const handlePop = () => {
     if (stack.length === 0) {
-      setMessage("Stack is empty");
+      setMessage("Stack underflow: there is no top value to pop.");
       return;
     }
 
     const lastIndex = stack.length - 1;
-
-    // mark top element as popping
     setPoppingIndex(lastIndex);
 
-    // wait for animation, then remove
     setTimeout(() => {
-      setStack((prev) => prev.slice(0, -1));
+      setStack((prev) => popStack(prev).next);
       setPoppingIndex(null);
-    }, 200); // must match CSS animation time
+    }, 200);
 
-    setMessage("Popped top element");
+    setMessage(`Popped ${stack[lastIndex]} from the top.`);
+    logOperation?.("Pop", `${stack[lastIndex]} removed from stack`);
   };
 
   return (
-    <div className="stack-card">
-     
-      <h2>Stack Visualizer</h2>
-
-      {/* Definition */}
-      <div className="stack-definition">
-        <h4>Definition</h4>
-        <p>
-          Stack is a <strong>linear data structure</strong> that follows
-          <strong> LIFO (Last In, First Out)</strong>.
-        </p>
-      </div>
-
-      {/* Controls */}
-      <div className="stack-controls">
+    <VisualizerCard
+      eyebrow="Core structure"
+      title="Stack Visualizer"
+      description="Stack follows LIFO: the last value inserted is the first value removed."
+    >
+      <ControlPanel className="stack-controls">
         <input
           type="text"
           value={input}
           placeholder="Enter value"
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(event) => setInput(event.target.value)}
         />
         <button onClick={handlePush}>Push</button>
         <button onClick={handlePop}>Pop</button>
-      </div>
+      </ControlPanel>
 
-      {/* Stack Visual */}
       <div className="stack-container">
         <span className="label">Top</span>
-
         <div className="stack-box">
           {stack.length === 0 ? (
             <div className="empty">Stack is empty</div>
@@ -77,9 +81,8 @@ function StackVisualizer() {
 
               return (
                 <div
-                  key={realIndex}
-                  className={`stack-item ${realIndex === poppingIndex ? "popping" : ""
-                    }`}
+                  key={`${item}-${realIndex}`}
+                  className={`stack-item ${realIndex === poppingIndex ? "popping" : ""}`}
                 >
                   {item}
                 </div>
@@ -87,12 +90,11 @@ function StackVisualizer() {
             })
           )}
         </div>
-
         <span className="label">Bottom</span>
       </div>
 
-      {message && <div className="message">{message}</div>}
-    </div>
+      <p className="message">{message}</p>
+    </VisualizerCard>
   );
 }
 
