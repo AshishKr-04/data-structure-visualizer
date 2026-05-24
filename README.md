@@ -11,7 +11,7 @@ Live demo: Deployment URL pending.
 After deploying, replace this line with your public link, for example:
 
 ```md
-Live demo: https://your-project-name.vercel.app
+Live demo: https://algorithimstudio.vercel.app/
 ```
 
 ## Preview
