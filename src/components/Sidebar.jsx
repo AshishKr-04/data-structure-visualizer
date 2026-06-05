@@ -1,16 +1,24 @@
 import { dataStructureList } from "../config/dataStructures";
 
-function Sidebar({ activeDS, setActiveDS }) {
+function Sidebar({ activeDS, setActiveDS, isOpen, onClose }) {
   const groups = dataStructureList.reduce((acc, item) => {
     acc[item.group] = [...(acc[item.group] || []), item];
     return acc;
   }, {});
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
-        <span>DSV</span>
-        <p>Visualizer Lab</p>
+        <div className="sidebar-logo">
+          <span>DSV</span>
+          <p>Visualizer Lab</p>
+        </div>
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close Sidebar">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18" strokeLinecap="round" />
+            <line x1="6" y1="6" x2="18" y2="18" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
 
       <nav className="nav-group" aria-label="Overview">

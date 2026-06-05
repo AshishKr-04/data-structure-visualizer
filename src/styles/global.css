@@ -110,6 +110,73 @@ select {
   border: 1px solid var(--border);
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-toggle-btn {
+  display: none;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.menu-toggle-btn:hover {
+  background: var(--panel-soft);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.sidebar-close-btn:hover {
+  color: var(--text);
+  background: var(--panel-soft);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+  animation: fadeInOverlay 0.2s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.inspector-toggle {
+  display: none;
+}
+
 .dashboard {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -1203,10 +1270,70 @@ kbd {
   .algorithm-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .inspector-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--panel-soft);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .inspector-toggle:hover {
+    background: color-mix(in srgb, var(--panel-soft) 95%, var(--accent));
+  }
+
+  .inspector-content {
+    display: none;
+    margin-top: 14px;
+  }
+
+  .inspector-panel.expanded .inspector-content {
+    display: grid;
+    gap: 16px;
+    animation: slideDownPanel 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes slideDownPanel {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 860px) {
-  .navbar,
+  .navbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+  }
+
+  .navbar h1 {
+    font-size: 1.05rem;
+  }
+
+  .nav-kicker {
+    font-size: 0.65rem;
+  }
+
+  .menu-toggle-btn {
+    display: flex;
+  }
+
   .workspace-hero,
   .lab-header {
     align-items: stretch;
@@ -1215,19 +1342,30 @@ kbd {
 
   .dashboard {
     grid-template-columns: 1fr;
+    position: relative;
   }
 
   .sidebar {
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 100;
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
   }
 
-  .nav-group {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .sidebar.open {
+    transform: translateX(0);
   }
 
-  .nav-group h2 {
-    grid-column: 1 / -1;
+  .sidebar-close-btn {
+    display: flex;
   }
 
   .main-panel {
@@ -1236,12 +1374,40 @@ kbd {
 
   .control-grid,
   .control-panel,
-  .stack-controls,
   .info-grid,
   .home-stats,
   .structure-card-grid,
   .algorithm-strip {
     grid-template-columns: 1fr;
+  }
+
+  .stack-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stack-controls input {
+    flex: 1 1 100%;
+  }
+
+  .stack-controls button {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 100px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .graph-stage,
+  .heap-stage {
+    min-height: auto;
+    height: auto;
+    max-height: 50vh;
+    aspect-ratio: 560 / 240;
+  }
+
+  .heap-stage {
+    aspect-ratio: 640 / 360;
   }
 
   .home-hero {
@@ -1286,5 +1452,17 @@ kbd {
 
   .home-actions button {
     flex: 1;
+  }
+
+  .home-visual-stage {
+    display: none;
+  }
+
+  .home-hero {
+    padding: 16px;
+  }
+
+  .home-hero-copy h2 {
+    font-size: 1.8rem;
   }
 }

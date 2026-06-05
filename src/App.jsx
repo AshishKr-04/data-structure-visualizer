@@ -22,6 +22,8 @@ function App() {
   const [history, setHistory] = useState([]);
   const [resetCounter, setResetCounter] = useState(0);
   const [randomCounter, setRandomCounter] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isInspectorExpanded, setIsInspectorExpanded] = useState(false);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
@@ -140,15 +142,26 @@ function App() {
 
   return (
     <>
-      <Navbar theme={theme} setTheme={setTheme} />
+      <Navbar
+        theme={theme}
+        setTheme={setTheme}
+        onMenuToggle={() => setIsSidebarOpen((prev) => !prev)}
+      />
 
       <div className="dashboard">
+        {isSidebarOpen && (
+          <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
+        )}
+
         <Sidebar
           activeDS={activeDS}
           setActiveDS={(ds) => {
             setActiveDS(ds);
             setViewMode("info");
+            setIsSidebarOpen(false);
           }}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
 
         <main className="main-panel">
@@ -205,40 +218,49 @@ function App() {
                 {viewMode === "visualize" && renderVisualizer()}
               </section>
 
-              <aside className="inspector-panel">
-                <div className="inspector-section">
-                  <div className="section-heading">
-                    <span>Animation Speed</span>
-                    <strong>{speed}ms</strong>
+              <aside className={`inspector-panel ${isInspectorExpanded ? "expanded" : ""}`}>
+                <button
+                  className="inspector-toggle"
+                  onClick={() => setIsInspectorExpanded((prev) => !prev)}
+                >
+                  <span>{isInspectorExpanded ? "Hide Settings & Log" : "Show Settings & Log"}</span>
+                  <span className="toggle-icon">{isInspectorExpanded ? "▼" : "▲"}</span>
+                </button>
+                <div className="inspector-content">
+                  <div className="inspector-section">
+                    <div className="section-heading">
+                      <span>Animation Speed</span>
+                      <strong>{speed}ms</strong>
+                    </div>
+                    <input
+                      className="speed-slider"
+                      type="range"
+                      min="150"
+                      max="1000"
+                      step="50"
+                      value={speed}
+                      onChange={(event) => setSpeed(Number(event.target.value))}
+                    />
+                    <div className="speed-labels">
+                      <span>Fast</span>
+                      <span>Detailed</span>
+                    </div>
                   </div>
-                  <input
-                    className="speed-slider"
-                    type="range"
-                    min="150"
-                    max="1000"
-                    step="50"
-                    value={speed}
-                    onChange={(event) => setSpeed(Number(event.target.value))}
-                  />
-                  <div className="speed-labels">
-                    <span>Fast</span>
-                    <span>Detailed</span>
-                  </div>
-                </div>
 
-                <OperationLog history={history} onClear={() => setHistory([])} />
+                  <OperationLog history={history} onClear={() => setHistory([])} />
 
-                <div className="inspector-section shortcuts-section">
-                  <div className="section-heading">
-                    <span>Keyboard</span>
-                    <strong>Shortcuts</strong>
-                  </div>
-                  <div className="shortcut-list">
-                    <span><kbd>H</kbd> Home</span>
-                    <span><kbd>V</kbd> Visualize</span>
-                    <span><kbd>I</kbd> Info</span>
-                    <span><kbd>R</kbd> Random</span>
-                    <span><kbd>Esc</kbd> Reset</span>
+                  <div className="inspector-section shortcuts-section">
+                    <div className="section-heading">
+                      <span>Keyboard</span>
+                      <strong>Shortcuts</strong>
+                    </div>
+                    <div className="shortcut-list">
+                      <span><kbd>H</kbd> Home</span>
+                      <span><kbd>V</kbd> Visualize</span>
+                      <span><kbd>I</kbd> Info</span>
+                      <span><kbd>R</kbd> Random</span>
+                      <span><kbd>Esc</kbd> Reset</span>
+                    </div>
                   </div>
                 </div>
               </aside>
