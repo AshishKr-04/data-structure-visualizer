@@ -1,18 +1,19 @@
 function VisualizerCard({ eyebrow, title, description, children, actions }) {
   return (
-    <section className="visualizer-card">
-      <div className="visualizer-card-header">
-        <div>
-          {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-          <h2>{title}</h2>
-          {description && <p>{description}</p>}
+    <section className="visualizer-card modern-card">
+      <div className="visualizer-card-header modern-header">
+        <div className="header-copy">
+          {eyebrow && <span className="modern-eyebrow">{eyebrow}</span>}
+          <h2 className="modern-title">{title}</h2>
+          {description && <p className="modern-desc">{description}</p>}
         </div>
-        {actions && <div className="button-row">{actions}</div>}
+        {actions && <div className="button-row modern-action-row">{actions}</div>}
       </div>
 
-      {children}
+      <div className="card-canvas-wrapper">{children}</div>
     </section>
   );
 }
 
 export default VisualizerCard;
+

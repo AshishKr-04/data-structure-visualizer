@@ -98,7 +98,7 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
 
     // SIMPLE / CIRCULAR
     if (size === MAX_SIZE) {
-      setMessage("Queue Overflow");
+      setMessage("Queue Overflow (Max buffer size reached)");
       return;
     }
 
@@ -123,7 +123,7 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
     // PRIORITY QUEUE
     if (queueType === "priority") {
       if (listQueue.length === 0) {
-        setMessage("Queue is empty");
+        setMessage("Queue is empty (Underflow)");
         return;
       }
       setListQueue((prev) => prev.slice(1));
@@ -135,7 +135,7 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
     // DEQUE
     if (queueType === "deque") {
       if (listQueue.length === 0) {
-        setMessage("Deque is empty");
+        setMessage("Deque is empty (Underflow)");
         return;
       }
       setDequeuingIndex(listQueue.length - 1);
@@ -150,7 +150,7 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
 
     // SIMPLE / CIRCULAR
     if (size === 0) {
-      setMessage("Queue is empty");
+      setMessage("Queue is empty (Underflow)");
       return;
     }
 
@@ -178,13 +178,13 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
   const getDefinition = () => {
     switch (queueType) {
       case "simple":
-        return "Simple Queue follows FIFO. Space freed at front is not reused.";
+        return "FIFO Pipeline: Space freed at front is not reused without shift.";
       case "circular":
-        return "Circular Queue reuses freed space using modulo arithmetic.";
+        return "Circular Ring Buffer: Reuses head memory slots via modulo arithmetic index wrap.";
       case "deque":
-        return "Deque allows insertion and deletion at both front and rear.";
+        return "Double-Ended Queue (Deque): Instant O(1) push and pop at both boundaries.";
       case "priority":
-        return "Priority Queue dequeues elements based on priority, not order.";
+        return "Priority Stream: Dequeues items strictly by highest priority score.";
       default:
         return "";
     }
@@ -196,15 +196,14 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
   const renderQueue = () => {
     if (queueType === "deque") {
       return listQueue.length === 0 ? (
-        <div className="empty">Deque is empty</div>
+        <div className="empty-queue-msg">Deque buffer is empty</div>
       ) : (
         listQueue.map((item, index) => (
           <div
             key={index}
-            className={`queue-item ${index === dequeuingIndex ? "dequeuing" : ""
-              }`}
+            className={`queue-item-modern ${index === dequeuingIndex ? "dequeuing" : ""}`}
           >
-            {item}
+            <span className="queue-item-val">{item}</span>
           </div>
         ))
       );
@@ -212,73 +211,76 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
 
     if (queueType === "priority") {
       return listQueue.length === 0 ? (
-        <div className="empty">Priority Queue is empty</div>
+        <div className="empty-queue-msg">Priority Queue is empty</div>
       ) : (
         listQueue.map((item, index) => (
-          <div key={index} className="queue-item">
-            {item.value} (P{item.priority})
+          <div key={index} className="queue-item-modern priority-item">
+            <span className="queue-item-val">{item.value}</span>
+            <span className="priority-tag">P{item.priority}</span>
           </div>
         ))
       );
     }
 
     // SIMPLE & CIRCULAR
-    return queue.map((item, index) => (
-      <div
-        key={index}
-        className={`queue-item ${index === dequeuingIndex ? "dequeuing" : ""
+    return queue.map((item, index) => {
+      const isFront = index === front && size > 0;
+      const isRear = index === rear && size > 0;
+
+      return (
+        <div
+          key={index}
+          className={`queue-item-modern ${item === null ? "slot-empty" : ""} ${
+            index === dequeuingIndex ? "dequeuing" : ""
           }`}
-      >
-        {item ?? "_"}
-      </div>
-    ));
+        >
+          <div className="slot-pointers">
+            {isFront && <span className="pointer-chip front-chip">FRONT</span>}
+            {isRear && <span className="pointer-chip rear-chip">REAR</span>}
+          </div>
+          <span className="queue-item-val">{item ?? "·"}</span>
+          <span className="slot-index-tag">[{index}]</span>
+        </div>
+      );
+    });
   };
 
   return (
-    <div className="stack-card">
-      
-      <h2>Queue Visualizer</h2>
-
-      <div className="stack-definition">
-        <h4>Definition</h4>
-        <p>{getDefinition()}</p>
+    <div className="visualizer-card modern-card">
+      <div className="visualizer-card-header modern-header">
+        <div>
+          <span className="modern-eyebrow">FIFO Pipeline Primitive</span>
+          <h2 className="modern-title">Queue Visualizer</h2>
+          <p className="modern-desc">{getDefinition()}</p>
+        </div>
       </div>
 
       {/* Queue Type Selector */}
-      <div className="ds-buttons">
-        <button
-          className={queueType === "simple" ? "active" : ""}
-          onClick={() => resetQueue("simple")}
-        >
-          Simple
-        </button>
-        <button
-          className={queueType === "circular" ? "active" : ""}
-          onClick={() => resetQueue("circular")}
-        >
-          Circular
-        </button>
-        <button
-          className={queueType === "deque" ? "active" : ""}
-          onClick={() => resetQueue("deque")}
-        >
-          Deque
-        </button>
-        <button
-          className={queueType === "priority" ? "active" : ""}
-          onClick={() => resetQueue("priority")}
-        >
-          Priority
-        </button>
+      <div className="ds-buttons modern-pill-switch">
+        {[
+          { id: "simple", label: "Simple FIFO" },
+          { id: "circular", label: "Circular Ring Buffer" },
+          { id: "deque", label: "Deque (Double-Ended)" },
+          { id: "priority", label: "Priority Queue" }
+        ].map((item) => (
+          <button
+            key={item.id}
+            className={`pill-switch-btn ${queueType === item.id ? "active" : ""}`}
+            onClick={() => resetQueue(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {/* Controls */}
-      <div className="stack-controls">
+      <div className="stack-controls modern-controls">
         <input
           type="text"
           placeholder="Enter value"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleEnqueue()}
         />
 
         {queueType === "priority" && (
@@ -288,29 +290,44 @@ function QueueVisualizer({ resetSignal, randomSignal, logOperation }) {
             max="10"
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            placeholder="Priority"
+            placeholder="Priority (1-10)"
+            style={{ maxWidth: "150px" }}
           />
         )}
 
-        <button onClick={handleEnqueue}>Enqueue</button>
-        <button onClick={handleDequeue}>Dequeue</button>
+        <button className="ctrl-btn-primary" onClick={handleEnqueue}>
+          Enqueue
+        </button>
+        <button className="ctrl-btn-danger" onClick={handleDequeue}>
+          Dequeue
+        </button>
       </div>
 
       {queueType === "circular" && (
-        <div className="message">
-          Front: {front} | Rear: {rear} | Size: {size}
+        <div className="queue-telemetry-badge-row">
+          <span className="telemetry-pill">Front Pointer: [{front}]</span>
+          <span className="telemetry-pill">Rear Pointer: [{rear}]</span>
+          <span className="telemetry-pill">Active Slots: {size} / {MAX_SIZE}</span>
         </div>
       )}
 
-      <div className="queue-container">
-        <div className="queue-row">
-          <span className="queue-label">Front</span>
-          <div className="queue-box">{renderQueue()}</div>
-          <span className="queue-label">Rear</span>
+      <div className="queue-pipeline-stage">
+        <div className="pipeline-terminal-marker exit-marker">
+          <span className="marker-tag">FRONT (Exit)</span>
+          <span className="marker-arrow">◀ Dequeue</span>
+        </div>
+
+        <div className="queue-pipeline-track">
+          <div className="queue-items-flow">{renderQueue()}</div>
+        </div>
+
+        <div className="pipeline-terminal-marker entry-marker">
+          <span className="marker-tag">REAR (Entry)</span>
+          <span className="marker-arrow">Enqueue ◀</span>
         </div>
       </div>
 
-      {message && <div className="message">{message}</div>}
+      {message && <p className="message modern-message">{message}</p>}
     </div>
   );
 }

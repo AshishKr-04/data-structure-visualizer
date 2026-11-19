@@ -53,47 +53,87 @@ function StackVisualizer({ resetSignal, randomSignal, logOperation }) {
     logOperation?.("Pop", `${stack[lastIndex]} removed from stack`);
   };
 
+  const handlePeek = () => {
+    if (stack.length === 0) {
+      setMessage("Stack is empty (underflow on peek).");
+      return;
+    }
+    const topVal = stack[stack.length - 1];
+    setMessage(`Peek top element: ${topVal} at index ${stack.length - 1}.`);
+    logOperation?.("Peek", `Inspected top element ${topVal}`);
+  };
+
   return (
     <VisualizerCard
-      eyebrow="Core structure"
+      eyebrow="Core LIFO Structure"
       title="Stack Visualizer"
-      description="Stack follows LIFO: the last value inserted is the first value removed."
+      description="LIFO (Last-In, First-Out) primitive powering recursion, browser history, and parser call stacks."
     >
-      <ControlPanel className="stack-controls">
+      <ControlPanel className="stack-controls modern-controls">
         <input
           type="text"
           value={input}
-          placeholder="Enter value"
+          placeholder="Enter value to push"
           onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handlePush()}
         />
-        <button onClick={handlePush}>Push</button>
-        <button onClick={handlePop}>Pop</button>
+        <button className="ctrl-btn-primary" onClick={handlePush}>Push (O(1))</button>
+        <button className="ctrl-btn-danger" onClick={handlePop}>Pop (O(1))</button>
+        <button className="ctrl-btn-secondary" onClick={handlePeek}>Peek Top</button>
       </ControlPanel>
 
-      <div className="stack-container">
-        <span className="label">Top</span>
-        <div className="stack-box">
-          {stack.length === 0 ? (
-            <div className="empty">Stack is empty</div>
-          ) : (
-            [...stack].reverse().map((item, index) => {
-              const realIndex = stack.length - 1 - index;
-
-              return (
-                <div
-                  key={`${item}-${realIndex}`}
-                  className={`stack-item ${realIndex === poppingIndex ? "popping" : ""}`}
-                >
-                  {item}
-                </div>
-              );
-            })
-          )}
+      <div className="stack-canister-stage">
+        <div className="canister-telemetry-row">
+          <span className="telemetry-pill">Stack Pointer (SP): {stack.length > 0 ? stack.length - 1 : "NULL"}</span>
+          <span className="telemetry-pill">Frames Count: {stack.length}</span>
         </div>
-        <span className="label">Bottom</span>
+
+        <div className="stack-canister-wrapper">
+          <div className="stack-sp-pointer-column">
+            {stack.length > 0 && (
+              <div className="top-pointer-indicator">
+                <span className="sp-text">TOP (SP)</span>
+                <span className="sp-arrow">──▶</span>
+              </div>
+            )}
+          </div>
+
+          <div className="stack-glass-canister">
+            <div className="canister-rim-top">OPEN TOP (Push / Pop Access)</div>
+            <div className="canister-body">
+              {stack.length === 0 ? (
+                <div className="empty-stack-guide">
+                  <span>Stack Empty</span>
+                  <small>Push items to grow frames upward</small>
+                </div>
+              ) : (
+                [...stack].reverse().map((item, index) => {
+                  const realIndex = stack.length - 1 - index;
+                  const isTop = index === 0;
+
+                  return (
+                    <div
+                      key={`${item}-${realIndex}`}
+                      className={`stack-frame-block ${isTop ? "is-top-frame" : ""} ${
+                        realIndex === poppingIndex ? "popping" : ""
+                      }`}
+                    >
+                      <div className="frame-meta">
+                        <span className="frame-idx">#{realIndex}</span>
+                        {isTop && <span className="top-badge">TOP</span>}
+                      </div>
+                      <span className="frame-value">{item}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            <div className="canister-base">CLOSED BASE (0x0000)</div>
+          </div>
+        </div>
       </div>
 
-      <p className="message">{message}</p>
+      <p className="message modern-message">{message}</p>
     </VisualizerCard>
   );
 }

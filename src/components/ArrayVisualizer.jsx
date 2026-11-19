@@ -111,38 +111,52 @@ function ArrayVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
         title="Array Visualizer"
         description="An array stores values by index, making direct access efficient."
       >
-        <ControlPanel className="stack-controls">
+        <ControlPanel className="stack-controls modern-controls">
           <input
             type="text"
-            placeholder="Enter value"
+            placeholder="Enter value (e.g. 42)"
             value={input}
             onChange={(event) => setInput(event.target.value)}
             disabled={isRunning}
+            onKeyDown={(e) => e.key === "Enter" && insertElement()}
           />
-          <button onClick={insertElement} disabled={isRunning}>Insert</button>
-          <button onClick={deleteElement} disabled={isRunning}>Delete</button>
-          <button onClick={reverseArray} disabled={isRunning}>Reverse</button>
+          <button className="ctrl-btn-primary" onClick={insertElement} disabled={isRunning}>Insert at End</button>
+          <button className="ctrl-btn-danger" onClick={deleteElement} disabled={isRunning}>Delete Match</button>
+          <button className="ctrl-btn-accent" onClick={reverseArray} disabled={isRunning}>Reverse (2-Pointer)</button>
         </ControlPanel>
 
-        <div className="queue-container">
-          <span className="label">Array</span>
-          <div className="queue-box">
+        <div className="array-memory-stage">
+          <div className="memory-stage-header">
+            <span className="stage-title">Contiguous RAM Cells [L1/L2 Cache Line]</span>
+            <span className="stage-badge">Base Address: 0x7FFE00</span>
+          </div>
+
+          <div className="array-cells-container">
             {array.length === 0 ? (
-              <div className="empty">Array is empty</div>
+              <div className="empty-array-state">Array is empty. Insert an element above.</div>
             ) : (
-              array.map((item, index) => (
-                <div
-                  key={`${item}-${index}`}
-                  className={`queue-item ${activeIndexes.includes(index) ? "active" : ""}`}
-                >
-                  {item}
-                </div>
-              ))
+              array.map((item, index) => {
+                const isActive = activeIndexes.includes(index);
+                const memoryAddress = `0x${(0x7ffe00 + index * 4).toString(16).toUpperCase()}`;
+                return (
+                  <div key={`${item}-${index}`} className="array-cell-column">
+                    <div className="cell-pointer-slot">
+                      {activeIndexes[0] === index && <span className="pointer-tag left-ptr">PTR-A</span>}
+                      {activeIndexes[1] === index && <span className="pointer-tag right-ptr">PTR-B</span>}
+                    </div>
+                    <div className={`array-cell-box ${isActive ? "active-cell" : ""}`}>
+                      <span className="cell-index-badge">[{index}]</span>
+                      <span className="cell-val">{item}</span>
+                    </div>
+                    <span className="cell-address">{memoryAddress}</span>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
 
-        <p className="message">{message}</p>
+        <p className="message modern-message">{message}</p>
       </VisualizerCard>
 
       <AlgorithmTrace

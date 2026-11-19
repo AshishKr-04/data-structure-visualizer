@@ -1,4 +1,16 @@
 import { useEffect, useState } from "react";
+import {
+  Info,
+  Play,
+  Shuffle,
+  RotateCcw,
+  Share2,
+  Check,
+  Sliders,
+  Keyboard,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import DSInfo from "./components/DSInfo";
@@ -84,9 +96,11 @@ function App() {
     logOperation("Randomize", `${activeMeta.label} sample data generated`);
   };
 
+  const [copiedShare, setCopiedShare] = useState(false);
+
   const exportState = async () => {
     const snapshot = {
-      project: "Data Structure Visualizer",
+      project: "AlgoStudio | Data Structure Visualizer",
       activeWorkspace: activeMeta.label,
       viewMode,
       speed,
@@ -99,6 +113,8 @@ function App() {
 
     try {
       await navigator.clipboard.writeText(shareUrl);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2200);
       logOperation("Share state", "Workspace snapshot copied to clipboard");
     } catch {
       logOperation("Export state", "Clipboard unavailable, snapshot generated");
@@ -140,12 +156,19 @@ function App() {
     setViewMode("visualize");
   };
 
+  const goHome = () => {
+    setActiveDS("home");
+    setViewMode("info");
+  };
+
   return (
     <>
       <Navbar
         theme={theme}
         setTheme={setTheme}
         onMenuToggle={() => setIsSidebarOpen((prev) => !prev)}
+        activeDSLabel={!isHome ? activeMeta.label : null}
+        onGoHome={goHome}
       />
 
       <div className="dashboard">
@@ -167,36 +190,66 @@ function App() {
         <main className="main-panel">
           {!isHome && (
             <section
-              className="workspace-hero"
+              className="workspace-hero modern-workspace-hero"
               style={{ "--active-accent": activeMeta.accent }}
             >
-              <div>
-                <span className="eyebrow">Interactive workspace</span>
+              <div className="hero-left-content">
+                <div className="hero-badge-group">
+                  <span className="eyebrow modern-eyebrow-accent">
+                    {activeMeta.badge || activeMeta.group}
+                  </span>
+                  <span className="workspace-status-badge">
+                    <span className="pulse-indicator" /> Live Session
+                  </span>
+                </div>
                 <h2>{activeMeta.label}</h2>
-                <p>{activeMeta.description}</p>
+                <p className="hero-description">{activeMeta.description}</p>
               </div>
 
-              <div className="workspace-actions">
-                <div className="view-switch" aria-label="View switch">
+              <div className="workspace-actions modern-workspace-actions">
+                <div className="view-switch modern-view-switch" aria-label="Workspace View Switch">
                   <button
-                    className={viewMode === "info" ? "active" : ""}
+                    className={`switch-tab ${viewMode === "info" ? "active" : ""}`}
                     onClick={() => setViewMode("info")}
                   >
-                    Info
+                    <Info size={15} />
+                    <span>Theory & System Use</span>
                   </button>
                   <button
-                    className={viewMode === "visualize" ? "active" : ""}
+                    className={`switch-tab ${viewMode === "visualize" ? "active" : ""}`}
                     onClick={() => setViewMode("visualize")}
                   >
-                    Visualize
+                    <Play size={15} />
+                    <span>Interactive Lab</span>
                   </button>
                 </div>
 
                 {viewMode === "visualize" && (
-                  <div className="quick-actions">
-                    <button onClick={randomizeActive}>Random</button>
-                    <button onClick={resetActive}>Reset</button>
-                    <button onClick={exportState}>Share</button>
+                  <div className="quick-actions modern-quick-actions">
+                    <button
+                      className="action-pill-btn"
+                      onClick={randomizeActive}
+                      title="Generate new randomized sample data"
+                    >
+                      <Shuffle size={14} />
+                      <span>Randomize</span>
+                    </button>
+                    <button
+                      className="action-pill-btn"
+                      onClick={resetActive}
+                      title="Reset structure to initial state"
+                    >
+                      <RotateCcw size={14} />
+                      <span>Reset</span>
+                    </button>
+                    <button
+                      className={`action-pill-btn share-btn ${copiedShare ? "copied" : ""}`}
+                      onClick={exportState}
+                      title="Share workspace snapshot link"
+                    >
+                      {copiedShare ? <Check size={14} /> : <Share2 size={14} />}
+                      <span>{copiedShare ? "Link Copied!" : "Share"}</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -206,8 +259,8 @@ function App() {
           {isHome ? (
             <HomePage onVisualize={openVisualizer} />
           ) : (
-            <div className="workspace-grid">
-              <section className="panel-content">
+            <div className="workspace-grid modern-workspace-grid">
+              <section className="panel-content modern-panel-content">
                 {viewMode === "info" && (
                   <DSInfo
                     activeDS={activeDS}
@@ -218,22 +271,50 @@ function App() {
                 {viewMode === "visualize" && renderVisualizer()}
               </section>
 
-              <aside className={`inspector-panel ${isInspectorExpanded ? "expanded" : ""}`}>
+              <aside className={`inspector-panel modern-inspector-panel ${isInspectorExpanded ? "expanded" : ""}`}>
                 <button
-                  className="inspector-toggle"
+                  className="inspector-toggle modern-inspector-toggle"
                   onClick={() => setIsInspectorExpanded((prev) => !prev)}
                 >
-                  <span>{isInspectorExpanded ? "Hide Settings & Log" : "Show Settings & Log"}</span>
-                  <span className="toggle-icon">{isInspectorExpanded ? "▼" : "▲"}</span>
+                  <div className="toggle-left">
+                    <Sliders size={16} />
+                    <span>Visualizer Controls & Telemetry</span>
+                  </div>
+                  <span className="toggle-icon">
+                    {isInspectorExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </span>
                 </button>
-                <div className="inspector-content">
-                  <div className="inspector-section">
+
+                <div className="inspector-content modern-inspector-content">
+                  {/* Speed Controls Section */}
+                  <div className="inspector-section speed-section-modern">
                     <div className="section-heading">
-                      <span>Animation Speed</span>
-                      <strong>{speed}ms</strong>
+                      <div className="heading-title-group">
+                        <Sliders size={15} className="heading-icon" />
+                        <span>Execution Speed</span>
+                      </div>
+                      <span className="speed-ms-badge">{speed}ms</span>
                     </div>
+
+                    <div className="speed-presets-row">
+                      {[
+                        { label: "Slow", ms: 900 },
+                        { label: "1x", ms: 500 },
+                        { label: "Fast", ms: 250 },
+                        { label: "Turbo", ms: 150 }
+                      ].map((preset) => (
+                        <button
+                          key={preset.label}
+                          className={`speed-preset-btn ${speed === preset.ms ? "active" : ""}`}
+                          onClick={() => setSpeed(preset.ms)}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
                     <input
-                      className="speed-slider"
+                      className="speed-slider modern-slider"
                       type="range"
                       min="150"
                       max="1000"
@@ -241,25 +322,36 @@ function App() {
                       value={speed}
                       onChange={(event) => setSpeed(Number(event.target.value))}
                     />
-                    <div className="speed-labels">
-                      <span>Fast</span>
-                      <span>Detailed</span>
+                    <div className="speed-labels modern-speed-labels">
+                      <span>⚡ 150ms (Turbo)</span>
+                      <span>🐢 1000ms (Detailed)</span>
                     </div>
                   </div>
 
+                  {/* Operation Log */}
                   <OperationLog history={history} onClear={() => setHistory([])} />
 
-                  <div className="inspector-section shortcuts-section">
+                  {/* Keyboard Shortcuts */}
+                  <div className="inspector-section shortcuts-section-modern">
                     <div className="section-heading">
-                      <span>Keyboard</span>
-                      <strong>Shortcuts</strong>
+                      <div className="heading-title-group">
+                        <Keyboard size={15} className="heading-icon" />
+                        <span>Keyboard Shortcuts</span>
+                      </div>
+                      <span className="shortcut-tip-badge">Pro Tip</span>
                     </div>
-                    <div className="shortcut-list">
-                      <span><kbd>H</kbd> Home</span>
-                      <span><kbd>V</kbd> Visualize</span>
-                      <span><kbd>I</kbd> Info</span>
-                      <span><kbd>R</kbd> Random</span>
-                      <span><kbd>Esc</kbd> Reset</span>
+                    <div className="shortcut-grid-modern">
+                      <div className="shortcut-row">
+                        <span><kbd>H</kbd> Go to Home</span>
+                        <span><kbd>V</kbd> Visualizer</span>
+                      </div>
+                      <div className="shortcut-row">
+                        <span><kbd>I</kbd> Theory Info</span>
+                        <span><kbd>R</kbd> Randomize</span>
+                      </div>
+                      <div className="shortcut-row full">
+                        <span><kbd>Esc</kbd> Reset Workspace</span>
+                      </div>
                     </div>
                   </div>
                 </div>

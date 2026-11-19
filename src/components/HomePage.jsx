@@ -1,160 +1,246 @@
+import { useState } from "react";
+import {
+  ArrowRight,
+  Sparkles,
+  Terminal,
+  Cpu,
+  Activity,
+  Layers,
+  CheckCircle2,
+  Compass
+} from "lucide-react";
 import { dataStructureList } from "../config/dataStructures";
 
-const learningPath = [
-  "Start with linear structures: Array, Linked List, Stack, Queue.",
-  "Move into hierarchical structures: Tree and Heap.",
-  "Finish with algorithmic thinking: Search, Sort, Graph traversal, Dijkstra."
+const learningRoadmap = [
+  {
+    step: "01",
+    title: "Linear Memory",
+    desc: "Contiguous arrays vs. pointer linked lists, LIFO call stacks & FIFO buffers.",
+    items: ["Array", "Linked List", "Stack", "Queue"]
+  },
+  {
+    step: "02",
+    title: "Hierarchical Trees",
+    desc: "Branching logarithmic lookup, binary search trees, and priority heaps.",
+    items: ["Binary Tree", "BST", "Max Heap"]
+  },
+  {
+    step: "03",
+    title: "Graph Networks",
+    desc: "Adjacency traversal, BFS queue frontiers, and Dijkstra shortest paths.",
+    items: ["BFS", "DFS", "Dijkstra"]
+  },
+  {
+    step: "04",
+    title: "Divide & Conquer",
+    desc: "Partitioning, logarithmic binary search, and O(n log n) comparison sorts.",
+    items: ["Binary Search", "Merge Sort", "Quick Sort"]
+  }
 ];
 
-function MiniVisualization({ id }) {
+function MinimalPreview({ id, accent }) {
   if (id === "graph") {
     return (
-      <svg className="home-mini-visual" viewBox="0 0 180 92" aria-hidden="true">
-        <line x1="34" y1="28" x2="86" y2="58" />
-        <line x1="86" y1="58" x2="142" y2="26" />
-        <line x1="34" y1="28" x2="142" y2="26" />
-        <circle cx="34" cy="28" r="13" />
-        <circle cx="86" cy="58" r="13" />
-        <circle cx="142" cy="26" r="13" />
+      <svg className="minimal-mini-svg" viewBox="0 0 160 70" aria-hidden="true">
+        <line x1="30" y1="22" x2="80" y2="48" stroke={accent} strokeWidth="2" />
+        <line x1="80" y1="48" x2="130" y2="22" stroke={accent} strokeWidth="2" />
+        <line x1="30" y1="22" x2="130" y2="22" stroke={accent} strokeWidth="1.5" strokeDasharray="3 3" />
+        <circle cx="30" cy="22" r="11" fill="var(--panel)" stroke={accent} strokeWidth="2" />
+        <circle cx="80" cy="48" r="11" fill="var(--panel)" stroke={accent} strokeWidth="2" />
+        <circle cx="130" cy="22" r="11" fill="var(--panel)" stroke={accent} strokeWidth="2" />
+        <text x="30" y="26" textAnchor="middle" fill="var(--text)" fontSize="9" fontWeight="bold">A</text>
+        <text x="80" y="52" textAnchor="middle" fill="var(--text)" fontSize="9" fontWeight="bold">B</text>
+        <text x="130" y="26" textAnchor="middle" fill="var(--text)" fontSize="9" fontWeight="bold">C</text>
       </svg>
     );
   }
 
   if (id === "tree" || id === "heap") {
     return (
-      <svg className="home-mini-visual" viewBox="0 0 180 92" aria-hidden="true">
-        <line x1="90" y1="20" x2="52" y2="62" />
-        <line x1="90" y1="20" x2="128" y2="62" />
-        <circle cx="90" cy="20" r="15" />
-        <circle cx="52" cy="62" r="13" />
-        <circle cx="128" cy="62" r="13" />
+      <svg className="minimal-mini-svg" viewBox="0 0 160 70" aria-hidden="true">
+        <line x1="80" y1="16" x2="44" y2="48" stroke={accent} strokeWidth="2" />
+        <line x1="80" y1="16" x2="116" y2="48" stroke={accent} strokeWidth="2" />
+        <circle cx="80" cy="16" r="11" fill="var(--panel)" stroke={accent} strokeWidth="2" />
+        <circle cx="44" cy="48" r="10" fill="var(--panel)" stroke={accent} strokeWidth="2" />
+        <circle cx="116" cy="48" r="10" fill="var(--panel)" stroke={accent} strokeWidth="2" />
+        <text x="80" y="20" textAnchor="middle" fill="var(--text)" fontSize="9" fontWeight="bold">50</text>
+        <text x="44" y="52" textAnchor="middle" fill="var(--text)" fontSize="8" fontWeight="bold">25</text>
+        <text x="116" y="52" textAnchor="middle" fill="var(--text)" fontSize="8" fontWeight="bold">75</text>
       </svg>
     );
   }
 
   if (id === "searchsort") {
     return (
-      <div className="home-bars" aria-hidden="true">
-        <span style={{ height: "44%" }} />
-        <span style={{ height: "78%" }} />
-        <span style={{ height: "34%" }} />
-        <span style={{ height: "92%" }} />
-        <span style={{ height: "58%" }} />
+      <div className="minimal-mini-bars" aria-hidden="true">
+        <span style={{ height: "40%", background: accent }} />
+        <span style={{ height: "75%", background: accent }} />
+        <span style={{ height: "25%", background: accent }} />
+        <span style={{ height: "90%", background: accent }} />
+        <span style={{ height: "55%", background: accent }} />
       </div>
     );
   }
 
   return (
-    <div className="home-nodes" aria-hidden="true">
-      <span />
-      <span />
-      <span />
-      <span />
+    <div className="minimal-mini-cells" aria-hidden="true">
+      <span style={{ borderColor: accent }} />
+      <span style={{ borderColor: accent }} />
+      <span style={{ borderColor: accent }} />
+      <span style={{ borderColor: accent }} />
     </div>
   );
 }
 
 function HomePage({ onVisualize }) {
-  const coreItems = dataStructureList.filter((item) => item.group === "Core");
-  const algorithmItems = dataStructureList.filter((item) => item.group !== "Core");
+  const [filter, setFilter] = useState("all");
+
+  const filteredItems = dataStructureList.filter((item) => {
+    if (filter === "core") return item.group === "Core";
+    if (filter === "algo") return item.group !== "Core";
+    return true;
+  });
 
   return (
-    <div className="home-page">
-      <section className="home-hero">
-        <div className="home-hero-copy">
-          <span className="eyebrow">Data structure learning map</span>
-          <h2>Understand how data moves, connects, and transforms.</h2>
-          <p>
-            Explore core data structures, algorithm patterns, complexity tradeoffs,
-            and animated operations from one guided workspace.
+    <div className="home-minimal-container">
+      {/* Sleek Minimal Hero */}
+      <section className="minimal-hero">
+        <div className="minimal-hero-inner">
+          <div className="minimal-pill-tag">
+            <Sparkles size={13} className="sparkle-icon" />
+            <span>Interactive Algorithm Studio</span>
+          </div>
+
+          <h1 className="minimal-headline">
+            Data Structures & <span className="minimal-gradient-text">Algorithms</span>
+          </h1>
+
+          <p className="minimal-subline">
+            A focused interactive workspace to visualize real-time pointer movements, 
+            memory layouts, and step-by-step Big-O complexity execution.
           </p>
-          <div className="home-actions">
-            <button onClick={() => onVisualize("array")}>Start Visualizing</button>
-            <button className="secondary-action" onClick={() => onVisualize("searchsort")}>
-              Explore Algorithms
+
+          <div className="minimal-hero-actions">
+            <button className="minimal-btn-primary" onClick={() => onVisualize("array")}>
+              <span>Start with Arrays</span>
+              <ArrowRight size={15} />
+            </button>
+            <button
+              className="minimal-btn-secondary"
+              onClick={() => onVisualize("searchsort")}
+            >
+              <Terminal size={15} />
+              <span>Explore Algorithms</span>
             </button>
           </div>
         </div>
 
-        <div className="home-visual-stage" aria-hidden="true">
-          <div className="orbit-node node-a">Array</div>
-          <div className="orbit-node node-b">Tree</div>
-          <div className="orbit-node node-c">Graph</div>
-          <div className="orbit-node node-d">Heap</div>
-          <div className="center-node">DSV</div>
+        {/* Minimal Quick Stats Strip */}
+        <div className="minimal-stat-strip">
+          <div className="stat-unit">
+            <Cpu size={16} className="stat-icon" />
+            <span><strong>8</strong> Labs</span>
+          </div>
+          <div className="stat-sep">•</div>
+          <div className="stat-unit">
+            <Activity size={16} className="stat-icon" />
+            <span><strong>O(1) – O(N²)</strong> Big-O Matrix</span>
+          </div>
+          <div className="stat-sep">•</div>
+          <div className="stat-unit">
+            <Layers size={16} className="stat-icon" />
+            <span><strong>System Design</strong> Production Insights</span>
+          </div>
+          <div className="stat-sep">•</div>
+          <div className="stat-unit">
+            <CheckCircle2 size={16} className="stat-icon" />
+            <span><strong>16/16</strong> Tests Passing</span>
+          </div>
         </div>
       </section>
 
-      <section className="home-stats">
-        <article>
-          <strong>{dataStructureList.length}</strong>
-          <span>interactive labs</span>
-        </article>
-        <article>
-          <strong>16</strong>
-          <span>core tests</span>
-        </article>
-        <article>
-          <strong>O()</strong>
-          <span>complexity focused</span>
-        </article>
-      </section>
-
-      <section className="home-section">
-        <div className="home-section-heading">
-          <span className="eyebrow">Core structures</span>
-          <h3>Learn the building blocks first.</h3>
+      {/* Filter Tabs Bar */}
+      <section className="minimal-filter-section">
+        <div className="filter-title-group">
+          <h2>Interactive Visualizer Catalog</h2>
+          <span className="filter-count">{filteredItems.length} Available</span>
         </div>
 
-        <div className="structure-card-grid">
-          {coreItems.map((item) => (
-            <article className="structure-card" key={item.id} style={{ "--card-accent": item.accent }}>
-              <MiniVisualization id={item.id} />
-              <div>
-                <h4>{item.label}</h4>
-                <p>{item.definition}</p>
-              </div>
-              <ul>
-                {item.topics.slice(0, 3).map((topic) => (
-                  <li key={topic}>{topic}</li>
+        <div className="minimal-filter-tabs">
+          {[
+            { id: "all", label: "All Labs" },
+            { id: "core", label: "Core Structures (5)" },
+            { id: "algo", label: "Algorithms (3)" }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              className={`filter-tab-btn ${filter === tab.id ? "active" : ""}`}
+              onClick={() => setFilter(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Clean Minimalist Cards Grid */}
+      <section className="minimal-grid">
+        {filteredItems.map((item) => (
+          <article
+            key={item.id}
+            className="minimal-card"
+            style={{ "--card-accent": item.accent }}
+            onClick={() => onVisualize(item.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && onVisualize(item.id)}
+          >
+            <div className="card-header-minimal">
+              <span className="card-badge-minimal">{item.badge || item.group}</span>
+              <span className="card-space-minimal">{item.spaceComplexity || "O(n)"}</span>
+            </div>
+
+            <div className="card-preview-minimal">
+              <MinimalPreview id={item.id} accent={item.accent} />
+            </div>
+
+            <div className="card-body-minimal">
+              <h3>{item.label}</h3>
+              <p>{item.definition || item.description}</p>
+            </div>
+
+            <div className="card-footer-minimal">
+              <span className="card-link-text">Launch Visualizer</span>
+              <ArrowRight size={14} className="card-arrow" />
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {/* Minimal 4-Step Technical Interview Roadmap */}
+      <section className="minimal-roadmap-section">
+        <div className="roadmap-header-minimal">
+          <Compass size={18} className="roadmap-icon-minimal" />
+          <div>
+            <h3>Recommended Interview Progression</h3>
+            <p>4-stage structured curriculum for technical interview preparation.</p>
+          </div>
+        </div>
+
+        <div className="minimal-roadmap-grid">
+          {learningRoadmap.map((item) => (
+            <div key={item.step} className="roadmap-box-minimal">
+              <span className="step-num-minimal">{item.step}</span>
+              <h4>{item.title}</h4>
+              <p>{item.desc}</p>
+              <div className="roadmap-tags-minimal">
+                {item.items.map((ds) => (
+                  <span key={ds} className="tag-minimal">{ds}</span>
                 ))}
-              </ul>
-              <button onClick={() => onVisualize(item.id)}>Visualize</button>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="home-section">
-        <div className="home-section-heading">
-          <span className="eyebrow">Algorithm labs</span>
-          <h3>See operations execute step by step.</h3>
-        </div>
-
-        <div className="algorithm-strip">
-          {algorithmItems.map((item) => (
-            <article className="algorithm-card" key={item.id} style={{ "--card-accent": item.accent }}>
-              <MiniVisualization id={item.id} />
-              <div>
-                <h4>{item.label}</h4>
-                <p>{item.description}</p>
               </div>
-              <button onClick={() => onVisualize(item.id)}>Open Lab</button>
-            </article>
+            </div>
           ))}
         </div>
-      </section>
-
-      <section className="learning-path">
-        <div>
-          <span className="eyebrow">Suggested path</span>
-          <h3>How to use this project</h3>
-        </div>
-        <ol>
-          {learningPath.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ol>
       </section>
     </div>
   );

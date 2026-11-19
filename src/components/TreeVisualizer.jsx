@@ -139,7 +139,7 @@ function TreeVisualizer({ speed = 500, resetSignal, randomSignal, logOperation }
 
     setBstDirect((prev) => insertNode(prev, value));
     setInput("");
-    logOperation?.("BST insert", `${value} inserted`);
+    logOperation?.("BST insert", `${value} inserted in logarithmic BST`);
   };
 
   /* ===============================
@@ -177,7 +177,8 @@ function TreeVisualizer({ speed = 500, resetSignal, randomSignal, logOperation }
     });
 
     setBstFromBinary(newBST);
-    setMessage("BST built from Binary Tree");
+    setShowBST(true);
+    setMessage("Binary tree values re-indexed into a valid Binary Search Tree (BST).");
     logOperation?.("Build BST", "BST created from binary tree values");
   };
 
@@ -242,7 +243,10 @@ function TreeVisualizer({ speed = 500, resetSignal, randomSignal, logOperation }
         ? root
         : bstDirect;
 
-    if (!currentRoot) return;
+    if (!currentRoot) {
+      setMessage("Cannot traverse an empty tree.");
+      return;
+    }
 
     resetTraversal();
     setTraversalType(type);
@@ -285,17 +289,17 @@ function TreeVisualizer({ speed = 500, resetSignal, randomSignal, logOperation }
     if (type === "postorder") await postorder(currentRoot);
 
     setIsTraversing(false);
-    logOperation?.("Tree traversal", `${type} traversal completed`);
+    logOperation?.("Tree traversal", `${type.toUpperCase()} traversal completed`);
   };
 
   const getTraversalExplanation = () => {
     switch (traversalType) {
       case "inorder":
-        return "Traversal Pattern: Left → Node → Right";
+        return "Inorder (LNR): Left Subtree ➔ Current Node ➔ Right Subtree. (Yields ascending sorted values on a BST!)";
       case "preorder":
-        return "Traversal Pattern: Node → Left → Right";
+        return "Preorder (NLR): Current Node ➔ Left Subtree ➔ Right Subtree. (Used in tree serialization/cloning)";
       case "postorder":
-        return "Traversal Pattern: Left → Right → Node";
+        return "Postorder (LRN): Left Subtree ➔ Right Subtree ➔ Current Node. (Used in bottom-up syntax tree evaluation/deletion)";
       default:
         return "";
     }
@@ -308,146 +312,184 @@ function TreeVisualizer({ speed = 500, resetSignal, randomSignal, logOperation }
     if (!node) return null;
 
     const isDeleting = node.value === deletingValue;
+    const isVisitedInTraversal = traversalOutput.includes(node.value);
 
     return (
-      <div className="tree-node">
+      <div className="tree-node modern-tree-node">
         <div
-          className="tree-circle"
-          style={{
-            backgroundColor: isDeleting ? "#ff4d4d" : "#2563eb",
-            transition: "0.3s"
-          }}
+          className={`tree-circle modern-tree-circle ${isDeleting ? "deleting" : ""} ${
+            isVisitedInTraversal ? "visited-traversal" : ""
+          }`}
         >
-          {node.value}
+          <span className="tree-node-val">{node.value}</span>
         </div>
 
-        <div className="tree-children">
-          {node.left && renderTree(node.left)}
-          {node.right && renderTree(node.right)}
-        </div>
+        {(node.left || node.right) && (
+          <div className="tree-children modern-tree-children">
+            <div className="tree-branch-col">
+              {node.left ? renderTree(node.left) : <div className="tree-null-placeholder" />}
+            </div>
+            <div className="tree-branch-col">
+              {node.right ? renderTree(node.right) : <div className="tree-null-placeholder" />}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
   return (
-    <div className="stack-card">
-      
-      <h2>Tree Visualizer</h2>
+    <div className="visualizer-card modern-card">
+      <div className="visualizer-card-header modern-header">
+        <div>
+          <span className="modern-eyebrow">Hierarchical Index Structure</span>
+          <h2 className="modern-title">Tree & Binary Search Tree Visualizer</h2>
+          <p className="modern-desc">
+            Multi-level branching structure guaranteeing logarithmic O(log n) lookups, power of database indexes and DOM trees.
+          </p>
+        </div>
+      </div>
 
       {/* MODE SWITCH */}
-      <div className="ds-buttons">
+      <div className="ds-buttons modern-pill-switch">
         <button
-          className={treeMode === "binary" ? "active" : ""}
+          className={`pill-switch-btn ${treeMode === "binary" ? "active" : ""}`}
           onClick={() => {
             setTreeMode("binary");
             resetTraversal();
           }}
         >
-          Binary Tree
+          Binary Tree (Level-Order)
         </button>
 
         <button
-          className={treeMode === "bst" ? "active" : ""}
+          className={`pill-switch-btn ${treeMode === "bst" ? "active" : ""}`}
           onClick={() => {
             setTreeMode("bst");
             resetTraversal();
           }}
         >
-          BST
+          Binary Search Tree (O(log n) Partition)
         </button>
       </div>
 
       {/* CONTROLS */}
-      <div className="stack-controls">
+      <div className="stack-controls modern-controls">
         <input
           type="text"
-          placeholder="Enter number"
+          placeholder="Enter number (e.g. 45)"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (treeMode === "binary" ? insertBinary() : insertBST())}
         />
 
         {treeMode === "binary" && (
           <>
-            <button onClick={insertBinary}>Insert Binary</button>
-            <button onClick={buildBSTFromBinary}>
-              Build BST from Binary
+            <button className="ctrl-btn-primary" onClick={insertBinary}>Insert Level-Order</button>
+            <button className="ctrl-btn-accent" onClick={buildBSTFromBinary}>
+              Convert to BST
             </button>
-            <button onClick={() => setShowBST(!showBST)}>
-              {showBST ? "Hide BST" : "Show BST"}
+            <button className="ctrl-btn-secondary" onClick={() => setShowBST(!showBST)}>
+              {showBST ? "Hide Converted BST" : "Show Converted BST"}
             </button>
           </>
         )}
 
         {treeMode === "bst" && (
-          <button onClick={insertBST}>Insert in BST</button>
+          <button className="ctrl-btn-primary" onClick={insertBST}>Insert in BST (O(log n))</button>
         )}
 
-        <button
-          onClick={deleteNode}
-          style={{ backgroundColor: "#e74c3c" }}
-        >
-          Delete
+        <button className="ctrl-btn-danger" onClick={deleteNode}>
+          Delete Node
         </button>
       </div>
 
-      {/* TRAVERSAL BUTTONS */}
-      <div className="ds-buttons" style={{ marginTop: "15px" }}>
-        <button disabled={isTraversing} onClick={() => startTraversal("inorder")}>
-          Inorder
-        </button>
-        <button disabled={isTraversing} onClick={() => startTraversal("preorder")}>
-          Preorder
-        </button>
-        <button disabled={isTraversing} onClick={() => startTraversal("postorder")}>
-          Postorder
-        </button>
+      {/* TRAVERSAL ENGINE */}
+      <div className="traversal-control-bar">
+        <div className="traversal-label-group">
+          <span className="traversal-bar-title">Traversal Algorithms:</span>
+        </div>
+        <div className="traversal-btn-group">
+          <button
+            className={`traversal-btn ${traversalType === "inorder" ? "active" : ""}`}
+            disabled={isTraversing}
+            onClick={() => startTraversal("inorder")}
+          >
+            Inorder (LNR)
+          </button>
+          <button
+            className={`traversal-btn ${traversalType === "preorder" ? "active" : ""}`}
+            disabled={isTraversing}
+            onClick={() => startTraversal("preorder")}
+          >
+            Preorder (NLR)
+          </button>
+          <button
+            className={`traversal-btn ${traversalType === "postorder" ? "active" : ""}`}
+            disabled={isTraversing}
+            onClick={() => startTraversal("postorder")}
+          >
+            Postorder (LRN)
+          </button>
+        </div>
       </div>
 
       {/* TRAVERSAL EXPLANATION */}
       {traversalType && (
-        <div className="message" style={{ marginTop: "15px" }}>
-          {getTraversalExplanation()}
+        <div className="traversal-explanation-banner">
+          <span className="expl-tag">Pattern</span>
+          <p>{getTraversalExplanation()}</p>
         </div>
       )}
 
-      {/* TREE DISPLAY */}
-      {treeMode === "binary" && (
-        <>
-          <div className="tree-container">
-            {root ? renderTree(root) : <div className="empty">Binary Tree is empty</div>}
-          </div>
-
-          {showBST && (
-            <>
-              <h3 style={{ marginTop: "30px" }}>
-                BST Built From Binary
-              </h3>
-              <div className="tree-container">
-                {bstFromBinary
-                  ? renderTree(bstFromBinary)
-                  : <div className="empty">Build BST first</div>}
-              </div>
-            </>
-          )}
-        </>
-      )}
-
-      {treeMode === "bst" && (
-        <div className="tree-container">
-          {bstDirect
-            ? renderTree(bstDirect)
-            : <div className="empty">BST is empty</div>}
-        </div>
-      )}
-
-      {/* TRAVERSAL OUTPUT */}
+      {/* TRAVERSAL OUTPUT STREAM */}
       {traversalOutput.length > 0 && (
-        <div className="message">
-          Traversal Output: {traversalOutput.join(" → ")}
+        <div className="traversal-stream-row">
+          <span className="stream-label">Traversal Stream:</span>
+          <div className="stream-pills">
+            {traversalOutput.map((val, idx) => (
+              <span key={idx} className="stream-node-chip">
+                {val}
+                {idx < traversalOutput.length - 1 && <span className="chip-arrow">➔</span>}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
-      {message && <div className="message">{message}</div>}
+      {/* TREE CANVAS DISPLAY */}
+      <div className="tree-canvas-stage">
+        {treeMode === "binary" && (
+          <>
+            <div className="tree-container">
+              {root ? renderTree(root) : <div className="empty-tree-state">Binary Tree is empty. Insert nodes above.</div>}
+            </div>
+
+            {showBST && (
+              <div className="bst-converted-section">
+                <div className="section-divider-title">
+                  <span>Converted Binary Search Tree (Sorted Invariants)</span>
+                </div>
+                <div className="tree-container">
+                  {bstFromBinary ? (
+                    renderTree(bstFromBinary)
+                  ) : (
+                    <div className="empty-tree-state">Click "Convert to BST" above</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {treeMode === "bst" && (
+          <div className="tree-container">
+            {bstDirect ? renderTree(bstDirect) : <div className="empty-tree-state">BST is empty. Insert values to partition.</div>}
+          </div>
+        )}
+      </div>
+
+      {message && <p className="message modern-message">{message}</p>}
     </div>
   );
 }

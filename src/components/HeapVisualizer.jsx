@@ -7,12 +7,12 @@ import { buildMaxHeap } from "../lib/heapOps";
 import { parseNumber } from "../lib/validation";
 
 const heapCode = [
-  "insert value at the end",
-  "compare with parent",
-  "swap while child is greater than parent",
-  "for extract, swap root with last value",
-  "remove last value",
-  "heapify down from root"
+  "insert new value at next open array index",
+  "compare child with its parent: parent = floor((i-1)/2)",
+  "swap while child > parent (sift-up)",
+  "for extract-max: swap root with last leaf element",
+  "remove last element from heap array",
+  "sift-down from root: swap with largest child"
 ];
 
 const sampleHeap = [90, 72, 61, 44, 35, 28, 18];
@@ -23,7 +23,7 @@ function HeapVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
   const [input, setInput] = useState("64");
   const [activeIndexes, setActiveIndexes] = useState([]);
   const [activeLine, setActiveLine] = useState(null);
-  const [message, setMessage] = useState("Max heap keeps the largest value at the root.");
+  const [message, setMessage] = useState("Max heap maintains root as greatest element in O(1) peek.");
   const [isRunning, setIsRunning] = useState(false);
 
   const positions = useMemo(() => {
@@ -35,7 +35,7 @@ function HeapVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
       const nodesInLevel = 2 ** level;
       return {
         x: ((indexInLevel + 1) * 100) / (nodesInLevel + 1),
-        y: levels === 1 ? 50 : 16 + level * 24
+        y: levels === 1 ? 50 : 18 + level * 26
       };
     });
   }, [heap]);
@@ -50,7 +50,7 @@ function HeapVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
     setHeap(buildMaxHeap(next));
     setActiveIndexes([]);
     setActiveLine(null);
-    setMessage("Random heap data generated.");
+    setMessage("Random heap tree generated.");
   }, [randomSignal]);
 
   const resetHeap = () => {
@@ -59,7 +59,7 @@ function HeapVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
     setActiveIndexes([]);
     setActiveLine(null);
     setIsRunning(false);
-    setMessage("Heap reset to sample data.");
+    setMessage("Heap reset to initial sample priority tree.");
   };
 
   const setStep = async (line, indexes, text) => {
@@ -81,39 +81,39 @@ function HeapVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
     const next = [...heap, value];
     setHeap(next);
     let child = next.length - 1;
-    await setStep(0, [child], `${value} inserted at the next open array slot.`);
+    await setStep(0, [child], `Appended ${value} at end index ${child}.`);
 
     while (child > 0) {
       const parent = Math.floor((child - 1) / 2);
-      await setStep(1, [parent, child], `Compare child ${next[child]} with parent ${next[parent]}.`);
+      await setStep(1, [parent, child], `Comparing child ${next[child]} with parent ${next[parent]} at index ${parent}.`);
       if (next[parent] >= next[child]) break;
       [next[parent], next[child]] = [next[child], next[parent]];
       setHeap([...next]);
-      await setStep(2, [parent, child], "Swap to restore max heap order.");
+      await setStep(2, [parent, child], `Swapped ${next[parent]} and ${next[child]} to restore max-heap invariant.`);
       child = parent;
     }
 
     setActiveIndexes([]);
     setIsRunning(false);
-    logOperation("Heap insert", `Inserted ${value}`);
+    logOperation("Heap insert", `Inserted ${value} (Sift-Up complete)`);
   };
 
   const extractMax = async () => {
     if (!heap.length) {
-      setMessage("Heap is empty.");
+      setMessage("Heap is empty (underflow).");
       return;
     }
 
     setIsRunning(true);
     const next = [...heap];
     const max = next[0];
-    await setStep(3, [0, next.length - 1], `Swap root ${max} with the last value.`);
+    await setStep(3, [0, next.length - 1], `Swapping root max element (${max}) with last leaf (${next[next.length - 1]}).`);
     [next[0], next[next.length - 1]] = [next[next.length - 1], next[0]];
     setHeap([...next]);
 
     next.pop();
     setHeap([...next]);
-    await setStep(4, [0], `${max} removed from the heap.`);
+    await setStep(4, [0], `Extracted max value ${max}. Beginning sift-down restoration.`);
 
     let parent = 0;
     while (true) {
@@ -123,7 +123,7 @@ function HeapVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
 
       if (left < next.length && next[left] > next[largest]) largest = left;
       if (right < next.length && next[right] > next[largest]) largest = right;
-      await setStep(5, [parent, left, right].filter((index) => index < next.length), "Heapify down checks children.");
+      await setStep(5, [parent, left, right].filter((index) => index < next.length), "Inspecting children for heap property violation.");
 
       if (largest === parent) break;
       [next[parent], next[largest]] = [next[largest], next[parent]];
@@ -133,83 +133,109 @@ function HeapVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
 
     setActiveIndexes([]);
     setIsRunning(false);
-    logOperation("Extract max", `Removed ${max}`);
+    logOperation("Extract max", `Extracted ${max} (Sift-Down complete)`);
   };
 
   return (
-    <div className="visualizer-layout">
+    <div className="visualizer-layout modern-layout">
       <VisualizerCard
-        eyebrow="Advanced structure"
-        title="Max Heap"
+        eyebrow="Priority Queue & Complete Binary Tree"
+        title="Max Heap Visualizer"
         actions={(
-          <>
-            <button onClick={insertValue} disabled={isRunning}>Insert</button>
-            <button onClick={extractMax} disabled={isRunning}>Extract Max</button>
-          </>
+          <div className="heap-actions-group">
+            <button className="ctrl-btn-primary" onClick={insertValue} disabled={isRunning}>
+              Insert (O(log n))
+            </button>
+            <button className="ctrl-btn-danger" onClick={extractMax} disabled={isRunning}>
+              Extract Max (O(log n))
+            </button>
+          </div>
         )}
       >
-
-        <ControlPanel className="control-grid">
+        <ControlPanel className="control-grid modern-controls-grid">
           <label>
-            Value
+            Value to Insert
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
               disabled={isRunning}
+              placeholder="e.g. 75"
+              onKeyDown={(e) => e.key === "Enter" && insertValue()}
             />
           </label>
         </ControlPanel>
 
-        <svg className="heap-stage" viewBox="0 0 640 360" role="img" aria-label="Max heap tree">
-          {heap.map((_, index) => {
-            const left = index * 2 + 1;
-            const right = index * 2 + 2;
-            return [left, right].map((child) => {
-              if (child >= heap.length) return null;
-              return (
-                <line
-                  key={`${index}-${child}`}
-                  x1={`${positions[index].x}%`}
-                  y1={`${positions[index].y}%`}
-                  x2={`${positions[child].x}%`}
-                  y2={`${positions[child].y}%`}
-                  className="heap-edge"
+        {/* Tree Representation */}
+        <div className="heap-canvas-stage">
+          <div className="stage-top-indicator">
+            <span className="indicator-pill">Tree Structure (Parent Dominance)</span>
+            <span className="indicator-pill highlight">Root Extremum: {heap[0] ?? "None"}</span>
+          </div>
+
+          <svg className="heap-stage modern-heap-stage" viewBox="0 0 640 360" role="img" aria-label="Max heap complete binary tree">
+            {heap.map((_, index) => {
+              const left = index * 2 + 1;
+              const right = index * 2 + 2;
+              return [left, right].map((child) => {
+                if (child >= heap.length) return null;
+                return (
+                  <line
+                    key={`${index}-${child}`}
+                    x1={`${positions[index].x}%`}
+                    y1={`${positions[index].y}%`}
+                    x2={`${positions[child].x}%`}
+                    y2={`${positions[child].y}%`}
+                    className="heap-edge-modern"
+                  />
+                );
+              });
+            })}
+
+            {heap.map((value, index) => (
+              <g key={`${value}-${index}`}>
+                <circle
+                  cx={`${positions[index].x}%`}
+                  cy={`${positions[index].y}%`}
+                  r="24"
+                  className={`heap-node-modern ${activeIndexes.includes(index) ? "active-node" : ""} ${
+                    index === 0 ? "root-node" : ""
+                  }`}
                 />
-              );
-            });
-          })}
-
-          {heap.map((value, index) => (
-            <g key={`${value}-${index}`}>
-              <circle
-                cx={`${positions[index].x}%`}
-                cy={`${positions[index].y}%`}
-                r="23"
-                className={activeIndexes.includes(index) ? "heap-node active" : "heap-node"}
-              />
-              <text
-                x={`${positions[index].x}%`}
-                y={`${positions[index].y}%`}
-                className="heap-label"
-              >
-                {value}
-              </text>
-            </g>
-          ))}
-        </svg>
-
-        <div className="array-strip">
-          {heap.map((value, index) => (
-            <span
-              key={`${value}-${index}`}
-              className={activeIndexes.includes(index) ? "active" : ""}
-            >
-              {value}
-            </span>
-          ))}
+                <text
+                  x={`${positions[index].x}%`}
+                  y={`${positions[index].y}%`}
+                  className="heap-label-modern"
+                >
+                  {value}
+                </text>
+              </g>
+            ))}
+          </svg>
         </div>
 
-        <p className="message">{message}</p>
+        {/* Contiguous Array Mapping */}
+        <div className="heap-array-sync-box">
+          <div className="sync-box-header">
+            <span>Contiguous Array Representation in Memory</span>
+            <span className="sync-formula">left = 2i + 1 | right = 2i + 2</span>
+          </div>
+          <div className="array-strip-modern">
+            {heap.map((value, index) => (
+              <div
+                key={`${value}-${index}`}
+                className={`heap-array-cell ${activeIndexes.includes(index) ? "active-cell" : ""} ${
+                  index === 0 ? "root-cell" : ""
+                }`}
+              >
+                <span className="cell-index">[{index}]</span>
+                <span className="cell-val">{value}</span>
+                {index === 0 && <span className="cell-tag">MAX</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p className="message modern-message">{message}</p>
       </VisualizerCard>
 
       <AlgorithmTrace

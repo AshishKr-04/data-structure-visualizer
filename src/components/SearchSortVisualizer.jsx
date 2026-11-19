@@ -8,44 +8,48 @@ import { binarySearch } from "../lib/sortSearchOps";
 const algorithms = {
   binary: {
     label: "Binary Search",
+    complexity: "O(log n)",
     code: [
-      "sort values",
+      "sort values in ascending order",
       "left = 0, right = n - 1",
       "while left <= right",
       "mid = floor((left + right) / 2)",
-      "if values[mid] is target, return mid",
-      "if values[mid] < target, move left",
-      "else move right"
+      "if values[mid] === target, return mid",
+      "if values[mid] < target, left = mid + 1",
+      "else right = mid - 1"
     ]
   },
   bubble: {
     label: "Bubble Sort",
+    complexity: "O(n²)",
     code: [
-      "for each pass",
-      "compare adjacent values",
-      "swap if left value is greater",
-      "largest unsettled value moves right",
-      "stop when no swaps occur"
+      "for each outer pass i from 0 to n-1",
+      "for each adjacent pair j and j+1",
+      "if values[j] > values[j+1], swap them",
+      "largest unsettled value bubbles to right",
+      "terminate early if zero swaps occurred"
     ]
   },
   merge: {
     label: "Merge Sort",
+    complexity: "O(n log n)",
     code: [
-      "split array into halves",
-      "sort the left half",
-      "sort the right half",
-      "merge smaller values first",
-      "copy merged result back"
+      "divide array into left and right halves",
+      "recursively sort the left sub-array",
+      "recursively sort the right sub-array",
+      "merge sorted halves comparing heads",
+      "copy merged buffer back to original"
     ]
   },
   quick: {
     label: "Quick Sort",
+    complexity: "O(n log n) avg",
     code: [
-      "choose pivot",
-      "scan values around pivot",
-      "move smaller values left",
-      "place pivot in final position",
-      "repeat for left and right partitions"
+      "select pivot element (last index)",
+      "partition array: elements <= pivot move left",
+      "place pivot in its final sorted index",
+      "recursively sort left partition",
+      "recursively sort right partition"
     ]
   }
 };
@@ -61,7 +65,9 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
   const [activeLine, setActiveLine] = useState(null);
   const [activeIndexes, setActiveIndexes] = useState([]);
   const [sortedIndexes, setSortedIndexes] = useState([]);
-  const [message, setMessage] = useState("Choose an algorithm and run it.");
+  const [comparisonsCount, setComparisonsCount] = useState(0);
+  const [swapsCount, setSwapsCount] = useState(0);
+  const [message, setMessage] = useState("Choose an algorithm preset and run it.");
   const [isRunning, setIsRunning] = useState(false);
 
   const maxValue = useMemo(() => Math.max(...values, 1), [values]);
@@ -71,14 +77,7 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
   }, [resetSignal]);
 
   useEffect(() => {
-    const next = Array.from({ length: 8 }, () => Math.floor(Math.random() * 85) + 10);
-    setValues(next);
-    setInput(next.join(", "));
-    setTarget(String(next[Math.floor(next.length / 2)]));
-    setActiveLine(null);
-    setActiveIndexes([]);
-    setSortedIndexes([]);
-    setMessage("Random data loaded.");
+    applyPreset("random");
   }, [randomSignal]);
 
   const resetLab = () => {
@@ -88,8 +87,32 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
     setActiveLine(null);
     setActiveIndexes([]);
     setSortedIndexes([]);
+    setComparisonsCount(0);
+    setSwapsCount(0);
     setIsRunning(false);
-    setMessage("Lab reset to sample data.");
+    setMessage("Lab reset to initial benchmark sample.");
+  };
+
+  const applyPreset = (type) => {
+    let next = [];
+    if (type === "random") {
+      next = Array.from({ length: 8 }, () => Math.floor(Math.random() * 85) + 10);
+    } else if (type === "nearlySorted") {
+      next = [10, 18, 25, 33, 48, 42, 65, 80]; // one swap
+    } else if (type === "reversed") {
+      next = [88, 72, 61, 53, 44, 30, 21, 11]; // worst case
+    } else if (type === "fewUnique") {
+      next = [15, 45, 15, 80, 45, 15, 80, 45];
+    }
+    setValues(next);
+    setInput(next.join(", "));
+    setTarget(String(next[Math.floor(next.length / 2)]));
+    setActiveLine(null);
+    setActiveIndexes([]);
+    setSortedIndexes([]);
+    setComparisonsCount(0);
+    setSwapsCount(0);
+    setMessage(`Applied "${type}" dataset preset.`);
   };
 
   const parseInput = () => {
@@ -103,7 +126,9 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
     setValues(parsed.value);
     setActiveIndexes([]);
     setSortedIndexes([]);
-    setMessage("Input applied.");
+    setComparisonsCount(0);
+    setSwapsCount(0);
+    setMessage("Custom inputs applied.");
     return parsed.value;
   };
 
@@ -124,137 +149,163 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
     const needle = targetResult.value;
     const { sorted } = binarySearch(sourceValues, needle);
     setValues(sorted);
-    await setStep(0, [], "Binary search needs sorted data.");
+    let comps = 0;
+    await setStep(0, [], "Binary search requires a sorted array.");
 
     let left = 0;
     let right = sorted.length - 1;
-    await setStep(1, [left, right], `Search window starts from ${left} to ${right}.`);
+    await setStep(1, [left, right], `Initial search interval: [${left}..${right}].`);
 
     while (left <= right) {
-      await setStep(2, [left, right], "The search window is still valid.");
+      comps += 1;
+      setComparisonsCount(comps);
+      await setStep(2, [left, right], `Valid window: left index ${left}, right index ${right}.`);
       const mid = Math.floor((left + right) / 2);
-      await setStep(3, [mid], `Checking middle index ${mid}.`);
+      await setStep(3, [mid], `Inspecting midpoint index ${mid} (value = ${sorted[mid]}).`);
 
       if (sorted[mid] === needle) {
-        await setStep(4, [mid], `Found ${needle} at index ${mid}.`);
+        await setStep(4, [mid], `SUCCESS: Target ${needle} matched at index ${mid}!`);
         setSortedIndexes([mid]);
-        logOperation("Binary search", `Found ${needle} at index ${mid}`);
+        logOperation("Binary search", `Found ${needle} at index ${mid} in ${comps} comparisons`);
         return;
       }
 
       if (sorted[mid] < needle) {
         left = mid + 1;
-        await setStep(5, [left, right], `${sorted[mid]} is smaller, move left bound.`);
+        await setStep(5, [left, right], `${sorted[mid]} < ${needle}: Narrowing to right half.`);
       } else {
         right = mid - 1;
-        await setStep(6, [left, right], `${sorted[mid]} is larger, move right bound.`);
+        await setStep(6, [left, right], `${sorted[mid]} > ${needle}: Narrowing to left half.`);
       }
     }
 
-    setMessage(`${needle} was not found.`);
-    logOperation("Binary search", `${needle} was not found`);
+    setMessage(`NOT FOUND: Target ${needle} is absent from array.`);
+    logOperation("Binary search", `${needle} not found after ${comps} comparisons`);
   };
 
   const runBubbleSort = async (sourceValues) => {
     const arr = [...sourceValues];
-    await setStep(0, [], "Starting bubble sort passes.");
+    let comps = 0;
+    let swaps = 0;
+    await setStep(0, [], "Starting Bubble Sort passes (O(n²) worst-case).");
 
     for (let i = 0; i < arr.length - 1; i++) {
       let swapped = false;
       for (let j = 0; j < arr.length - i - 1; j++) {
-        await setStep(1, [j, j + 1], `Compare ${arr[j]} and ${arr[j + 1]}.`);
+        comps += 1;
+        setComparisonsCount(comps);
+        await setStep(1, [j, j + 1], `Comparing arr[${j}]=${arr[j]} with arr[${j + 1}]=${arr[j + 1]}.`);
         if (arr[j] > arr[j + 1]) {
           [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+          swaps += 1;
+          setSwapsCount(swaps);
           setValues([...arr]);
           swapped = true;
-          await setStep(2, [j, j + 1], "Values swapped.");
+          await setStep(2, [j, j + 1], `Inversion detected! Swapped ${arr[j + 1]} and ${arr[j]}.`);
         }
       }
       setSortedIndexes((prev) => [...prev, arr.length - i - 1]);
-      await setStep(3, [arr.length - i - 1], "Largest unsettled value is fixed.");
+      await setStep(3, [arr.length - i - 1], `Position ${arr.length - i - 1} is now in final sorted position.`);
       if (!swapped) break;
     }
 
     setSortedIndexes(arr.map((_, index) => index));
-    await setStep(4, [], "Array is sorted.");
-    logOperation("Bubble sort", `Sorted ${arr.length} values`);
+    await setStep(4, [], `Bubble sort complete! ${comps} comparisons, ${swaps} swaps.`);
+    logOperation("Bubble sort", `Sorted ${arr.length} elements (${comps} comps, ${swaps} swaps)`);
   };
 
   const runMergeSort = async (sourceValues) => {
     const arr = [...sourceValues];
+    let comps = 0;
+    let writes = 0;
 
     const mergeSort = async (start, end) => {
       if (start >= end) return;
 
       const mid = Math.floor((start + end) / 2);
-      await setStep(0, [start, end], `Split indexes ${start} to ${end}.`);
-      await setStep(1, [start, mid], "Sort the left half.");
+      await setStep(0, [start, end], `Subdividing range [${start}..${end}] at mid ${mid}.`);
+      await setStep(1, [start, mid], `Recursing into left partition [${start}..${mid}].`);
       await mergeSort(start, mid);
-      await setStep(2, [mid + 1, end], "Sort the right half.");
+      await setStep(2, [mid + 1, end], `Recursing into right partition [${mid + 1}..${end}].`);
       await mergeSort(mid + 1, end);
 
       const merged = [];
       let left = start;
       let right = mid + 1;
-      await setStep(3, [left, right], "Merge the two sorted halves.");
+      await setStep(3, [left, right], `Merging sorted halves: left [${start}..${mid}] and right [${mid + 1}..${end}].`);
 
       while (left <= mid && right <= end) {
-        if (arr[left] <= arr[right]) merged.push(arr[left++]);
-        else merged.push(arr[right++]);
+        comps += 1;
+        setComparisonsCount(comps);
+        if (arr[left] <= arr[right]) {
+          merged.push(arr[left++]);
+        } else {
+          merged.push(arr[right++]);
+        }
       }
 
       while (left <= mid) merged.push(arr[left++]);
       while (right <= end) merged.push(arr[right++]);
 
-      merged.forEach((value, offset) => {
-        arr[start + offset] = value;
-      });
+      for (let offset = 0; offset < merged.length; offset++) {
+        writes += 1;
+        setSwapsCount(writes);
+        arr[start + offset] = merged[offset];
+      }
       setValues([...arr]);
-      await setStep(4, Array.from({ length: end - start + 1 }, (_, i) => start + i), "Merged result copied back.");
+      await setStep(4, Array.from({ length: end - start + 1 }, (_, i) => start + i), "Merged partition written back to array.");
     };
 
     await mergeSort(0, arr.length - 1);
     setSortedIndexes(arr.map((_, index) => index));
-    logOperation("Merge sort", `Sorted ${arr.length} values`);
+    logOperation("Merge sort", `Completed in O(n log n) with ${comps} comps and ${writes} writes`);
   };
 
   const runQuickSort = async (sourceValues) => {
     const arr = [...sourceValues];
+    let comps = 0;
+    let swaps = 0;
 
     const partition = async (low, high) => {
       const pivot = arr[high];
       let i = low - 1;
-      await setStep(0, [high], `Pivot selected: ${pivot}.`);
+      await setStep(0, [high], `Selected pivot = ${pivot} at index ${high}.`);
 
       for (let j = low; j < high; j++) {
-        await setStep(1, [j, high], `Compare ${arr[j]} with pivot ${pivot}.`);
+        comps += 1;
+        setComparisonsCount(comps);
+        await setStep(1, [j, high], `Comparing element ${arr[j]} with pivot ${pivot}.`);
         if (arr[j] < pivot) {
           i += 1;
           [arr[i], arr[j]] = [arr[j], arr[i]];
+          swaps += 1;
+          setSwapsCount(swaps);
           setValues([...arr]);
-          await setStep(2, [i, j], "Smaller value moved left.");
+          await setStep(2, [i, j], `Moved smaller element ${arr[i]} to index ${i}.`);
         }
       }
 
       [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+      swaps += 1;
+      setSwapsCount(swaps);
       setValues([...arr]);
-      await setStep(3, [i + 1], "Pivot placed in final position.");
+      await setStep(3, [i + 1], `Placed pivot ${pivot} in final sorted position index ${i + 1}.`);
       return i + 1;
     };
 
     const quickSort = async (low, high) => {
       if (low < high) {
         const pivotIndex = await partition(low, high);
-        await setStep(4, [low, pivotIndex - 1], "Sort left partition.");
+        await setStep(4, [low, pivotIndex - 1], "QuickSort on left sub-partition.");
         await quickSort(low, pivotIndex - 1);
-        await setStep(4, [pivotIndex + 1, high], "Sort right partition.");
+        await setStep(4, [pivotIndex + 1, high], "QuickSort on right sub-partition.");
         await quickSort(pivotIndex + 1, high);
       }
     };
 
     await quickSort(0, arr.length - 1);
     setSortedIndexes(arr.map((_, index) => index));
-    logOperation("Quick sort", `Sorted ${arr.length} values`);
+    logOperation("Quick sort", `Completed with ${comps} comparisons, ${swaps} swaps`);
   };
 
   const runAlgorithm = async () => {
@@ -262,6 +313,8 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
     if (!sourceValues) return;
     setIsRunning(true);
     setSortedIndexes([]);
+    setComparisonsCount(0);
+    setSwapsCount(0);
 
     if (algorithm === "binary") await runBinarySearch(sourceValues);
     if (algorithm === "bubble") await runBubbleSort(sourceValues);
@@ -273,33 +326,35 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
   };
 
   return (
-    <div className="visualizer-layout">
+    <div className="visualizer-layout modern-layout">
       <VisualizerCard
-        eyebrow="Search and sorting"
+        eyebrow="Divide & Conquer / Comparison Suite"
         title={algorithms[algorithm].label}
         actions={(
-          <button onClick={runAlgorithm} disabled={isRunning}>
-            {isRunning ? "Running" : "Run"}
+          <button className="primary-run-btn" onClick={runAlgorithm} disabled={isRunning}>
+            {isRunning ? "Executing..." : "Execute Algorithm"}
           </button>
         )}
       >
-
-        <ControlPanel className="control-grid">
+        {/* Algorithm & Target Controls */}
+        <ControlPanel className="control-grid modern-controls-grid">
           <label>
-            Algorithm
+            Algorithm Model
             <select
               value={algorithm}
               onChange={(event) => setAlgorithm(event.target.value)}
               disabled={isRunning}
             >
               {Object.entries(algorithms).map(([key, item]) => (
-                <option key={key} value={key}>{item.label}</option>
+                <option key={key} value={key}>
+                  {item.label} ({item.complexity})
+                </option>
               ))}
             </select>
           </label>
 
           <label>
-            Values
+            Dataset Values (Comma Separated)
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
@@ -309,7 +364,7 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
 
           {algorithm === "binary" && (
             <label>
-              Target
+              Search Target
               <input
                 value={target}
                 onChange={(event) => setTarget(event.target.value)}
@@ -319,23 +374,56 @@ function SearchSortVisualizer({ speed, resetSignal, randomSignal, logOperation }
           )}
         </ControlPanel>
 
-        <div className="bar-stage">
-          {values.map((value, index) => (
-            <div className="bar-column" key={`${value}-${index}`}>
-              <div
-                className={[
-                  "bar",
-                  activeIndexes.includes(index) ? "active" : "",
-                  sortedIndexes.includes(index) ? "sorted" : ""
-                ].join(" ")}
-                style={{ height: `${Math.max(18, (value / maxValue) * 220)}px` }}
-              />
-              <span>{value}</span>
-            </div>
-          ))}
+        {/* Dataset Presets Row */}
+        <div className="dataset-presets-bar">
+          <span className="presets-label">Datasets for Benchmarking:</span>
+          <div className="preset-buttons">
+            <button disabled={isRunning} onClick={() => applyPreset("random")}>Random</button>
+            <button disabled={isRunning} onClick={() => applyPreset("nearlySorted")}>Nearly Sorted</button>
+            <button disabled={isRunning} onClick={() => applyPreset("reversed")}>Reversed (Worst)</button>
+            <button disabled={isRunning} onClick={() => applyPreset("fewUnique")}>Few Unique</button>
+          </div>
         </div>
 
-        <p className="message">{message}</p>
+        {/* Real-time Execution Telemetry Header */}
+        <div className="sort-telemetry-header">
+          <div className="telemetry-chip">
+            <span className="chip-label">Complexity:</span>
+            <span className="chip-val highlight">{algorithms[algorithm].complexity}</span>
+          </div>
+          <div className="telemetry-chip">
+            <span className="chip-label">Comparisons:</span>
+            <span className="chip-val">{comparisonsCount}</span>
+          </div>
+          <div className="telemetry-chip">
+            <span className="chip-label">Swaps/Writes:</span>
+            <span className="chip-val">{swapsCount}</span>
+          </div>
+        </div>
+
+        {/* Modern Bar Chart Stage */}
+        <div className="bar-stage modern-bar-stage">
+          {values.map((value, index) => {
+            const isActive = activeIndexes.includes(index);
+            const isSorted = sortedIndexes.includes(index);
+            const heightPercent = Math.max(15, (value / maxValue) * 100);
+
+            return (
+              <div className="bar-column-modern" key={`${value}-${index}`}>
+                <span className="bar-val-badge">{value}</span>
+                <div
+                  className={`bar-modern ${isActive ? "active-bar" : ""} ${
+                    isSorted ? "sorted-bar" : ""
+                  }`}
+                  style={{ height: `${heightPercent}%` }}
+                />
+                <span className="bar-index-label">[{index}]</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="message modern-message">{message}</p>
       </VisualizerCard>
 
       <AlgorithmTrace

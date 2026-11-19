@@ -7,46 +7,49 @@ import { buildAdjacency } from "../lib/graphOps";
 
 const graphAlgorithms = {
   bfs: {
-    label: "Breadth First Search",
+    label: "Breadth First Search (BFS)",
+    complexity: "O(V + E)",
     code: [
-      "create queue with start node",
-      "mark start as visited",
+      "initialize queue with start node",
+      "mark start node as visited",
       "while queue is not empty",
-      "remove front node",
-      "visit each unvisited neighbor",
-      "push neighbor into queue"
+      "dequeue current front node",
+      "inspect each unvisited neighbor",
+      "enqueue unvisited neighbor"
     ]
   },
   dfs: {
-    label: "Depth First Search",
+    label: "Depth First Search (DFS)",
+    complexity: "O(V + E)",
     code: [
-      "start from selected node",
-      "mark node as visited",
-      "for each neighbor",
-      "if neighbor is unvisited",
-      "recursively visit neighbor"
+      "start traversal from selected node",
+      "mark current node as visited",
+      "for each outgoing neighbor",
+      "if neighbor is not visited yet",
+      "recursively branch into neighbor"
     ]
   },
   dijkstra: {
-    label: "Dijkstra",
+    label: "Dijkstra Shortest Path",
+    complexity: "O((V + E) log V)",
     code: [
-      "set all distances to infinity",
-      "distance[start] = 0",
-      "choose unvisited node with smallest distance",
-      "relax each outgoing edge",
-      "update distance if shorter path is found",
-      "repeat until all reachable nodes are settled"
+      "initialize distance[v] = ∞, distance[start] = 0",
+      "extract unvisited node with smallest distance",
+      "relax each outgoing weighted edge (u, v)",
+      "if dist[u] + weight < dist[v], update dist[v]",
+      "mark current node as permanently settled",
+      "repeat until all nodes are settled"
     ]
   }
 };
 
 const nodePositions = {
-  A: { x: 50, y: 42 },
-  B: { x: 190, y: 28 },
-  C: { x: 185, y: 145 },
-  D: { x: 335, y: 62 },
-  E: { x: 355, y: 178 },
-  F: { x: 500, y: 110 }
+  A: { x: 55, y: 45 },
+  B: { x: 195, y: 32 },
+  C: { x: 190, y: 155 },
+  D: { x: 345, y: 68 },
+  E: { x: 365, y: 185 },
+  F: { x: 505, y: 115 }
 };
 
 const baseEdges = [
@@ -71,7 +74,7 @@ function GraphVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
   const [activeEdge, setActiveEdge] = useState(null);
   const [distances, setDistances] = useState({});
   const [activeLine, setActiveLine] = useState(null);
-  const [message, setMessage] = useState("Run a graph algorithm to inspect traversal.");
+  const [message, setMessage] = useState("Run a graph traversal to inspect edge relaxations.");
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
@@ -97,7 +100,7 @@ function GraphVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
     setActiveEdge(null);
     setDistances({});
     setActiveLine(null);
-    setMessage("Graph reset to sample network.");
+    setMessage("Graph reset to standard topology.");
   };
 
   const setStep = async (line, node, edge, text) => {
@@ -112,49 +115,49 @@ function GraphVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
     const queue = [startNode];
     const seen = new Set([startNode]);
     setVisited([startNode]);
-    await setStep(0, startNode, null, `Queue starts with ${startNode}.`);
-    await setStep(1, startNode, null, `${startNode} is marked visited.`);
+    await setStep(0, startNode, null, `Queue initialized with source node ${startNode}.`);
+    await setStep(1, startNode, null, `Node ${startNode} marked visited.`);
 
     while (queue.length) {
-      await setStep(2, queue[0], null, `Queue: ${queue.join(", ")}.`);
+      await setStep(2, queue[0], null, `Queue frontier: [${queue.join(", ")}].`);
       const current = queue.shift();
-      await setStep(3, current, null, `Visiting ${current}.`);
+      await setStep(3, current, null, `Visiting node ${current}.`);
 
       for (const neighbor of adjacency[current] || []) {
-        await setStep(4, neighbor.node, [current, neighbor.node], `Check neighbor ${neighbor.node}.`);
+        await setStep(4, neighbor.node, [current, neighbor.node], `Inspecting edge (${current} ➔ ${neighbor.node}).`);
         if (!seen.has(neighbor.node)) {
           seen.add(neighbor.node);
           queue.push(neighbor.node);
           setVisited([...seen]);
-          await setStep(5, neighbor.node, [current, neighbor.node], `${neighbor.node} added to queue.`);
+          await setStep(5, neighbor.node, [current, neighbor.node], `Node ${neighbor.node} marked visited & enqueued.`);
         }
       }
     }
 
-    logOperation("BFS", `Visited ${[...seen].join(" -> ")}`);
+    logOperation("BFS", `Visited order: ${[...seen].join(" ➔ ")}`);
   };
 
   const runDfs = async (adjacency) => {
     const seen = new Set();
 
     const visit = async (node) => {
-      await setStep(0, node, null, `DFS enters ${node}.`);
+      await setStep(0, node, null, `DFS entering node ${node}.`);
       seen.add(node);
       setVisited([...seen]);
-      await setStep(1, node, null, `${node} marked visited.`);
+      await setStep(1, node, null, `Node ${node} marked visited.`);
 
       for (const neighbor of adjacency[node] || []) {
-        await setStep(2, neighbor.node, [node, neighbor.node], `Inspect ${neighbor.node}.`);
+        await setStep(2, neighbor.node, [node, neighbor.node], `Checking branch to ${neighbor.node}.`);
         if (!seen.has(neighbor.node)) {
-          await setStep(3, neighbor.node, [node, neighbor.node], `${neighbor.node} is unvisited.`);
-          await setStep(4, neighbor.node, [node, neighbor.node], `Recursing into ${neighbor.node}.`);
+          await setStep(3, neighbor.node, [node, neighbor.node], `Neighbor ${neighbor.node} is unvisited.`);
+          await setStep(4, neighbor.node, [node, neighbor.node], `Recursing into ${neighbor.node}...`);
           await visit(neighbor.node);
         }
       }
     };
 
     await visit(startNode);
-    logOperation("DFS", `Visited ${[...seen].join(" -> ")}`);
+    logOperation("DFS", `Visited order: ${[...seen].join(" ➔ ")}`);
   };
 
   const runDijkstra = async (adjacency) => {
@@ -163,8 +166,8 @@ function GraphVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
     const settled = new Set();
     dist[startNode] = 0;
     setDistances({ ...dist });
-    await setStep(0, null, null, "All distances start at infinity.");
-    await setStep(1, startNode, null, `${startNode} distance is 0.`);
+    await setStep(0, null, null, `Distances initialized to ∞. Source dist[${startNode}] = 0.`);
+    await setStep(1, startNode, null, `Selecting initial vertex ${startNode}.`);
 
     while (settled.size < nodes.length) {
       const current = nodes
@@ -174,21 +177,21 @@ function GraphVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
       if (!current || dist[current] === Infinity) break;
       settled.add(current);
       setVisited([...settled]);
-      await setStep(2, current, null, `${current} has the smallest temporary distance.`);
+      await setStep(2, current, null, `Vertex ${current} has minimum tentative distance (${dist[current]}).`);
 
       for (const neighbor of adjacency[current] || []) {
-        await setStep(3, neighbor.node, [current, neighbor.node], `Relax edge ${current}-${neighbor.node}.`);
+        await setStep(3, neighbor.node, [current, neighbor.node], `Edge relaxation on (${current} ➔ ${neighbor.node}, weight ${neighbor.weight}).`);
         const candidate = dist[current] + neighbor.weight;
         if (candidate < dist[neighbor.node]) {
           dist[neighbor.node] = candidate;
           setDistances({ ...dist });
-          await setStep(4, neighbor.node, [current, neighbor.node], `Distance to ${neighbor.node} becomes ${candidate}.`);
+          await setStep(4, neighbor.node, [current, neighbor.node], `Relaxation: dist[${neighbor.node}] improved to ${candidate}!`);
         }
       }
     }
 
-    await setStep(5, null, null, "Shortest distances are settled.");
-    logOperation("Dijkstra", `Computed paths from ${startNode}`);
+    await setStep(5, null, null, `Dijkstra complete! Shortest paths from ${startNode} settled.`);
+    logOperation("Dijkstra", `Computed shortest paths from ${startNode}`);
   };
 
   const runAlgorithm = async () => {
@@ -212,99 +215,140 @@ function GraphVisualizer({ speed, resetSignal, randomSignal, logOperation }) {
   };
 
   return (
-    <div className="visualizer-layout">
+    <div className="visualizer-layout modern-layout">
       <VisualizerCard
-        eyebrow="Graph algorithms"
+        eyebrow="Network Topology & Shortest Path"
         title={graphAlgorithms[algorithm].label}
         actions={(
-          <button onClick={runAlgorithm} disabled={isRunning}>
-            {isRunning ? "Running" : "Run"}
+          <button className="primary-run-btn" onClick={runAlgorithm} disabled={isRunning}>
+            {isRunning ? "Traversing..." : "Run Traversal"}
           </button>
         )}
       >
-
-        <ControlPanel className="control-grid">
+        <ControlPanel className="control-grid modern-controls-grid">
           <label>
-            Algorithm
+            Algorithm Engine
             <select
               value={algorithm}
               onChange={(event) => setAlgorithm(event.target.value)}
               disabled={isRunning}
             >
               {Object.entries(graphAlgorithms).map(([key, item]) => (
-                <option key={key} value={key}>{item.label}</option>
+                <option key={key} value={key}>
+                  {item.label} ({item.complexity})
+                </option>
               ))}
             </select>
           </label>
 
           <label>
-            Start node
+            Source Vertex (Root)
             <select
               value={startNode}
               onChange={(event) => setStartNode(event.target.value)}
               disabled={isRunning}
             >
               {Object.keys(nodePositions).map((node) => (
-                <option key={node} value={node}>{node}</option>
+                <option key={node} value={node}>
+                  Vertex {node}
+                </option>
               ))}
             </select>
           </label>
         </ControlPanel>
 
-        <svg className="graph-stage" viewBox="0 0 560 240" role="img" aria-label="Weighted graph">
-          {edges.map(([from, to, weight]) => {
-            const start = nodePositions[from];
-            const end = nodePositions[to];
-            return (
-              <g key={`${from}-${to}`}>
-                <line
-                  x1={start.x}
-                  y1={start.y}
-                  x2={end.x}
-                  y2={end.y}
-                  className={isActiveEdge(from, to) ? "graph-edge active" : "graph-edge"}
-                />
-                <text
-                  x={(start.x + end.x) / 2}
-                  y={(start.y + end.y) / 2 - 6}
-                  className="edge-label"
-                >
-                  {weight}
-                </text>
-              </g>
-            );
-          })}
+        {/* SVG Network Canvas */}
+        <div className="graph-stage-wrapper">
+          <svg className="graph-stage modern-graph-stage" viewBox="0 0 570 240" role="img" aria-label="Weighted network graph">
+            <defs>
+              <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
 
-          {Object.entries(nodePositions).map(([node, position]) => (
-            <g key={node}>
-              <circle
-                cx={position.x}
-                cy={position.y}
-                r="22"
-                className={[
-                  "graph-node",
-                  visited.includes(node) ? "visited" : "",
-                  activeNode === node ? "active" : ""
-                ].join(" ")}
-              />
-              <text x={position.x} y={position.y + 5} className="node-label">
-                {node}
-              </text>
-            </g>
-          ))}
-        </svg>
+            {/* Render Edges */}
+            {edges.map(([from, to, weight]) => {
+              const start = nodePositions[from];
+              const end = nodePositions[to];
+              const active = isActiveEdge(from, to);
+              const midX = (start.x + end.x) / 2;
+              const midY = (start.y + end.y) / 2;
 
+              return (
+                <g key={`${from}-${to}`}>
+                  <line
+                    x1={start.x}
+                    y1={start.y}
+                    x2={end.x}
+                    y2={end.y}
+                    className={`graph-edge-modern ${active ? "active-edge" : ""}`}
+                  />
+                  {/* Edge Weight Badge */}
+                  <rect
+                    x={midX - 10}
+                    y={midY - 14}
+                    width="20"
+                    height="16"
+                    rx="4"
+                    className="edge-weight-bg"
+                  />
+                  <text
+                    x={midX}
+                    y={midY - 3}
+                    className="edge-weight-label"
+                  >
+                    {weight}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Render Vertices */}
+            {Object.entries(nodePositions).map(([node, position]) => {
+              const isVisited = visited.includes(node);
+              const isActive = activeNode === node;
+              const isSource = startNode === node;
+
+              return (
+                <g key={node} className="node-group">
+                  <circle
+                    cx={position.x}
+                    cy={position.y}
+                    r="22"
+                    className={`graph-node-modern ${isVisited ? "visited-node" : ""} ${
+                      isActive ? "active-node" : ""
+                    } ${isSource ? "source-node" : ""}`}
+                  />
+                  <text x={position.x} y={position.y + 5} className="node-label-modern">
+                    {node}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        {/* Dijkstra Distance Table */}
         {algorithm === "dijkstra" && (
-          <div className="distance-grid">
-            {Object.keys(nodePositions).map((node) => (
-              <span key={node}>
-                {node}: {distances[node] === Infinity || distances[node] == null ? "inf" : distances[node]}
-              </span>
-            ))}
+          <div className="dijkstra-distance-bar">
+            <span className="dist-title">Shortest Distances from [{startNode}]:</span>
+            <div className="distance-grid-modern">
+              {Object.keys(nodePositions).map((node) => {
+                const d = distances[node];
+                const isInfinity = d === Infinity || d == null;
+                return (
+                  <div key={node} className={`dist-cell ${node === startNode ? "is-source" : ""}`}>
+                    <span className="dist-vertex">{node}</span>
+                    <span className="dist-val">{isInfinity ? "∞" : d}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        <p className="message">{message}</p>
+        <p className="message modern-message">{message}</p>
       </VisualizerCard>
 
       <AlgorithmTrace

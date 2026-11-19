@@ -121,68 +121,106 @@ function LinkedListVisualizer({ speed, resetSignal, randomSignal, logOperation }
           <p>{definition}</p>
         </div>
 
-        <div className="ds-buttons">
+        <div className="ds-buttons modern-pill-switch">
           {["singly", "doubly", "circular"].map((type) => (
             <button
               key={type}
-              className={listType === type ? "active" : ""}
+              className={`pill-switch-btn ${listType === type ? "active" : ""}`}
               onClick={() => setListType(type)}
               disabled={isRunning}
             >
-              {type[0].toUpperCase() + type.slice(1)}
+              {type === "singly" && "Singly Linked"}
+              {type === "doubly" && "Doubly Linked (LRU Cache)"}
+              {type === "circular" && "Circular Ring"}
             </button>
           ))}
         </div>
 
-        <div className="stack-controls">
+        <div className="stack-controls modern-controls">
           <input
             type="text"
-            placeholder="Enter value"
+            placeholder="Enter node value"
             value={input}
             onChange={(event) => setInput(event.target.value)}
             disabled={isRunning}
+            onKeyDown={(e) => e.key === "Enter" && insertEnd()}
           />
-          <button onClick={insertFront} disabled={isRunning}>Insert Front</button>
-          <button onClick={insertEnd} disabled={isRunning}>Insert End</button>
-          <button onClick={deleteValue} disabled={isRunning}>Delete</button>
-          <button onClick={reverseList} disabled={isRunning}>Reverse</button>
+          <button className="ctrl-btn-primary" onClick={insertFront} disabled={isRunning}>Insert Head</button>
+          <button className="ctrl-btn-primary" onClick={insertEnd} disabled={isRunning}>Insert Tail</button>
+          <button className="ctrl-btn-danger" onClick={deleteValue} disabled={isRunning}>Delete Value</button>
+          <button className="ctrl-btn-accent" onClick={reverseList} disabled={isRunning}>Reverse Pointers</button>
         </div>
 
         {listType === "circular" && (
-          <div className="circular-indicator">Tail links back to head.</div>
+          <div className="circular-indicator-modern">
+            <span className="ring-pulse" /> Tail cyclic reference loops back to Head node.
+          </div>
         )}
 
-        <div className={listType === "doubly" ? "dll-container" : "linked-list"}>
-          {list.length === 0 ? (
-            <div className="empty">Linked list is empty</div>
-          ) : (
-            list.map((node, index) => (
-              <div className="ll-node-wrapper" key={`${node.value}-${index}`}>
-                {listType === "doubly" && index === 0 && <span className="dll-null">NULL</span>}
-                <div className={listType === "doubly" ? "dll-node" : "ll-node"}>
-                  {listType === "doubly" ? (
-                    <>
-                      <span className="dll-part">prev</span>
-                      <span className={`dll-value ${activeIndex === index ? "active" : ""}`}>{node.value}</span>
-                      <span className="dll-part">next</span>
-                    </>
-                  ) : (
-                    <span className={activeIndex === index ? "active-node" : ""}>{node.value}</span>
-                  )}
-                </div>
-                {index !== list.length - 1 && (
-                  <span className="ll-arrow">{listType === "doubly" ? "<->" : "->"}</span>
-                )}
-                {listType === "circular" && index === list.length - 1 && list.length > 1 && (
-                  <span className="circular-arrow">{"-> head"}</span>
-                )}
-                {listType === "doubly" && index === list.length - 1 && <span className="dll-null">NULL</span>}
-              </div>
-            ))
-          )}
+        <div className="linked-list-stage">
+          <div className="linked-list-scroll-box">
+            {list.length === 0 ? (
+              <div className="empty-state-modern">Linked list is empty. Add a node above.</div>
+            ) : (
+              list.map((node, index) => {
+                const isHead = index === 0;
+                const isTail = index === list.length - 1;
+                const isActive = activeIndex === index;
+
+                return (
+                  <div className="ll-node-wrapper-modern" key={`${node.value}-${index}`}>
+                    {/* Head / Tail Pointer Flags */}
+                    <div className="ll-pointer-flags">
+                      {isHead && <span className="pointer-flag head-flag">HEAD</span>}
+                      {isTail && <span className="pointer-flag tail-flag">TAIL</span>}
+                    </div>
+
+                    {listType === "doubly" && isHead && (
+                      <div className="dll-null-badge">NULL</div>
+                    )}
+
+                    <div className={`ll-node-box ${listType === "doubly" ? "doubly" : "singly"} ${isActive ? "active-node" : ""}`}>
+                      {listType === "doubly" && (
+                        <div className="node-partition prev-partition">prev*</div>
+                      )}
+                      <div className="node-partition val-partition">
+                        <span className="node-val">{node.value}</span>
+                        <span className="node-meta-addr">0x{node.value.charCodeAt(0)?.toString(16) || "4"}A</span>
+                      </div>
+                      <div className="node-partition next-partition">next*</div>
+                    </div>
+
+                    {/* Arrow Connection */}
+                    {!isTail && (
+                      <div className="ll-connector">
+                        {listType === "doubly" ? (
+                          <div className="bi-directional-arrow">
+                            <span className="arrow-left">‹──</span>
+                            <span className="arrow-right">──›</span>
+                          </div>
+                        ) : (
+                          <span className="single-arrow">──▶</span>
+                        )}
+                      </div>
+                    )}
+
+                    {listType === "circular" && isTail && list.length > 1 && (
+                      <div className="circular-return-arrow">
+                        <span>⤴ [cycles back to Head]</span>
+                      </div>
+                    )}
+
+                    {listType === "doubly" && isTail && (
+                      <div className="dll-null-badge">NULL</div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
 
-        <p className="message">{message}</p>
+        <p className="message modern-message">{message}</p>
       </section>
 
       <AlgorithmTrace
